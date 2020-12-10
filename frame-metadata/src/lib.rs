@@ -420,6 +420,7 @@ impl Decode for RuntimeMetadataDeprecated {
 /// The metadata of a runtime.
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg(feature = "v12")]
 pub struct RuntimeMetadataV12 {
 	/// Metadata of all the modules.
 	pub modules: DecodeDifferentArray<ModuleMetadata>,
@@ -428,7 +429,15 @@ pub struct RuntimeMetadataV12 {
 }
 
 /// The latest version of the metadata.
+#[cfg(feature = "v12")]
 pub type RuntimeMetadataLastVersion = RuntimeMetadataV12;
+
+#[cfg(feature = "v12")]
+impl Into<RuntimeMetadataPrefixed> for RuntimeMetadataLastVersion {
+	fn into(self) -> RuntimeMetadataPrefixed {
+		RuntimeMetadataPrefixed(META_RESERVED, RuntimeMetadata::V12(self))
+	}
+}
 
 /// All metadata about an runtime module.
 #[derive(Clone, PartialEq, Eq, Encode)]
@@ -451,11 +460,5 @@ type DFnA<T> = DecodeDifferent<FnEncode<&'static [T]>, Vec<T>>;
 impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
 	fn into(self) -> Vec<u8> {
 		self.encode()
-	}
-}
-
-impl Into<RuntimeMetadataPrefixed> for RuntimeMetadataLastVersion {
-	fn into(self) -> RuntimeMetadataPrefixed {
-		RuntimeMetadataPrefixed(META_RESERVED, RuntimeMetadata::V12(self))
 	}
 }
