@@ -74,7 +74,7 @@ jobs:
         with:
           command:                 check
           toolchain:               stable
-          args:                    --target wasm32-unknown-unknown --no-default-features
+          args:                    --manifest-path ./frame-metadata/Cargo.toml --target wasm32-unknown-unknown --no-default-features 
 
   check-features:
     name:                          Check Features
@@ -97,10 +97,10 @@ jobs:
         with:
           command:                 check
           toolchain:               stable
-          args:                    --no-default-features
+          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features
       - name:                      Checking v12
         uses:                      actions-rs/cargo@master
         with:
           command:                 check
           toolchain:               stable
-          args:                    --no-default-features --features v12
+          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v12
