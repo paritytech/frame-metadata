@@ -23,16 +23,11 @@
 use codec::Decode;
 use codec::Encode;
 
+use scale_info::prelude::fmt::Debug;
+
 use scale_info::{
-	form::{
-		CompactForm,
-		Form,
-		MetaForm,
-	},
-	meta_type,
-	IntoCompact,
-	Registry,
-	TypeInfo,
+	form::{CompactForm, Form, MetaForm},
+	meta_type, IntoCompact, Registry, RegistryReadOnly, TypeInfo,
 };
 
 /// Current prefix of metadata
@@ -44,8 +39,8 @@ pub type RuntimeMetadataLastVersion<T> = RuntimeMetadataV12<T>;
 #[derive(Eq, Encode, PartialEq, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Decode))]
 pub struct RuntimeMetadataPrefixed<S = &'static str>
-	where
-		S: PartialEq + Eq + PartialOrd + Ord + Clone + Debug,
+where
+	S: PartialEq + Eq + PartialOrd + Ord + Clone + Debug,
 {
 	pub prefix: u32,
 	pub types: RegistryReadOnly<S>,
@@ -287,8 +282,8 @@ impl IntoCompact for TypeSpec {
 impl TypeSpec {
 	/// Creates a new type specification without a display name.
 	pub fn new<T>(name: &'static str) -> Self
-		where
-			T: TypeInfo + 'static,
+	where
+		T: TypeInfo + 'static,
 	{
 		Self {
 			ty: meta_type::<T>(),
