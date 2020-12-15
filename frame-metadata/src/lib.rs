@@ -41,20 +41,39 @@ pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 pub type RuntimeMetadataLastVersion<T> = RuntimeMetadataV12<T>;
 
 /// Metadata prefixed by a u32 for reserved usage
-#[derive(Eq, Encode, PartialEq, Debug)]
+#[derive(Eq, Encode, PartialEq, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Decode))]
-pub struct RuntimeMetadataPrefixed<T: Form = MetaForm>(pub u32, pub RuntimeMetadata<T>);
+pub struct RuntimeMetadataPrefixed<S = &'static str>
+	where
+		S: PartialEq + Eq + PartialOrd + Ord + Clone + Debug,
+{
+	pub prefix: u32,
+	pub types: RegistryReadOnly<S>,
+	pub metadata: RuntimeMetadata<CompactForm<S>>,
+}
 
-impl From<RuntimeMetadataLastVersion<CompactForm>> for RuntimeMetadataPrefixed<CompactForm> {
-	fn from(metadata: RuntimeMetadataLastVersion<CompactForm>) -> RuntimeMetadataPrefixed<CompactForm> {
-		RuntimeMetadataPrefixed(META_RESERVED, RuntimeMetadata::V12(metadata))
+impl From<RuntimeMetadataLastVersion<MetaForm>> for RuntimeMetadataPrefixed {
+	fn from(metadata: RuntimeMetadataLastVersion<MetaForm>) -> RuntimeMetadataPrefixed {
+		let mut registry = Registry::new();
+		let metadata = metadata.into_compact(&mut registry);
+		RuntimeMetadataPrefixed {
+			prefix: super::META_RESERVED,
+			types: registry.into(),
+			metadata: RuntimeMetadata::V12(metadata),
+		}
+	}
+}
+
+impl From<RuntimeMetadataPrefixed> for sp_core::OpaqueMetadata {
+	fn from(metadata: RuntimeMetadataPrefixed) -> Self {
+		sp_core::OpaqueMetadata::new(metadata.encode())
 	}
 }
 
 /// The metadata of a runtime.
 /// The version ID encoded/decoded through
 /// the enum nature of `RuntimeMetadata`.
-#[derive(Eq, Encode, PartialEq, Debug)]
+#[derive(Eq, Encode, PartialEq, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Decode))]
 pub enum RuntimeMetadata<T: Form = MetaForm> {
 	/// Version 12 for runtime metadata.
@@ -62,7 +81,7 @@ pub enum RuntimeMetadata<T: Form = MetaForm> {
 }
 
 /// The metadata of a runtime.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[derive(Clone, PartialEq, Eq, Encode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Decode))]
 pub struct RuntimeMetadataV12<T: Form = MetaForm> {
 	/// Metadata of all the modules.
@@ -83,7 +102,7 @@ impl IntoCompact for RuntimeMetadataV12 {
 }
 
 /// Metadata of the extrinsic used by the runtime.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[derive(Clone, PartialEq, Eq, Encode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Decode))]
 pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	/// Extrinsic version.
@@ -104,7 +123,7 @@ impl IntoCompact for ExtrinsicMetadata {
 }
 
 /// All metadata about an runtime module.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[derive(Clone, PartialEq, Eq, Encode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Decode))]
 pub struct ModuleMetadata<T: Form = MetaForm> {
 	pub name: T::String,
@@ -128,7 +147,7 @@ impl IntoCompact for ModuleMetadata {
 }
 
 /// All the metadata about a function.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[derive(Clone, PartialEq, Eq, Encode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Decode))]
 pub struct FunctionMetadata<T: Form = MetaForm> {
 	pub name: T::String,
@@ -149,7 +168,7 @@ impl IntoCompact for FunctionMetadata {
 }
 
 /// All the metadata about a function argument.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[derive(Clone, PartialEq, Eq, Encode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Decode))]
 pub struct FunctionArgumentMetadata<T: Form = MetaForm> {
 	pub name: T::String,
@@ -170,7 +189,7 @@ impl IntoCompact for FunctionArgumentMetadata {
 }
 
 /// All the metadata about an outer event.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[derive(Clone, PartialEq, Eq, Encode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Decode))]
 pub struct OuterEventMetadata<T: Form = MetaForm> {
 	pub name: T::String,
@@ -189,7 +208,7 @@ impl IntoCompact for OuterEventMetadata {
 }
 
 /// Metadata about a module event.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[derive(Clone, PartialEq, Eq, Encode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Decode))]
 pub struct ModuleEventMetadata<T: Form = MetaForm> {
 	pub name: T::String,
@@ -208,7 +227,7 @@ impl IntoCompact for ModuleEventMetadata {
 }
 
 /// All the metadata about an event.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[derive(Clone, PartialEq, Eq, Encode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Decode))]
 pub struct EventMetadata<T: Form = MetaForm> {
 	pub name: T::String,
@@ -245,7 +264,7 @@ impl IntoCompact for EventMetadata {
 /// `pred`'s display name is `Predicate` and the display name of
 /// the return type is simply `bool`. Note that `Predicate` could
 /// simply be a type alias to `fn(i32, i32) -> Ordering`.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[derive(Clone, PartialEq, Eq, Encode, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Decode))]
 pub struct TypeSpec<T: Form = MetaForm> {
 	/// The actual type.
