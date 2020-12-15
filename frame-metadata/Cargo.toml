@@ -22,5 +22,6 @@ default = ["std", "v12"]
 v12 = []
 std = [
 	"codec/std",
+	"scale-info/std",
 	"serde",
 ]
