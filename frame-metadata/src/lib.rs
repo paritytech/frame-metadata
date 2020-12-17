@@ -257,9 +257,9 @@ impl IntoCompact for EventMetadata {
 #[cfg_attr(feature = "std", derive(Decode))]
 pub struct TypeSpec<T: Form = MetaForm> {
 	/// The actual type.
-	ty: T::Type,
+	pub ty: T::Type,
 	/// The compile-time known displayed representation of the type.
-	name: T::String,
+	pub name: T::String,
 }
 
 impl IntoCompact for TypeSpec {
