@@ -24,7 +24,7 @@
 use codec::{Decode, Error, Input};
 use codec::{Encode, Output};
 #[cfg(feature = "std")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[cfg(not(feature = "std"))]
 extern crate alloc;
@@ -52,9 +52,9 @@ where
 	B: 'static,
 	O: 'static,
 {
-    /// Encodable variant of the value (doesn't need to be decodeable).
+	/// Encodable variant of the value (doesn't need to be decodeable).
 	Encode(B),
-    /// Encodable & decodeable variant of the value.
+	/// Encodable & decodeable variant of the value.
 	Decoded(O),
 }
 
@@ -139,66 +139,67 @@ where
 #[cfg(feature = "std")]
 impl<'de, B, O> serde::Deserialize<'de> for DecodeDifferent<B, O>
 where
-    O: serde::Deserialize<'de>
+	O: serde::Deserialize<'de>,
 {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>
-    {
-        let d = O::deserialize(deserializer)?;
-        Ok(DecodeDifferent::Decoded(d))
-    }
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: serde::Deserializer<'de>,
+	{
+		let d = O::deserialize(deserializer)?;
+		Ok(DecodeDifferent::Decoded(d))
+	}
 }
 
-impl<B, O, T> core::ops::Deref for DecodeDifferent<B, O> where
-    B: core::ops::Deref<Target = T>,
-    O: core::ops::Deref<Target = T>,
+impl<B, O, T> core::ops::Deref for DecodeDifferent<B, O>
+where
+	B: core::ops::Deref<Target = T>,
+	O: core::ops::Deref<Target = T>,
 {
-    type Target = T;
+	type Target = T;
 
-    fn deref(&self) -> &Self::Target {
-        match *self {
-            Self::Encode(ref e) => &**e,
-            Self::Decoded(ref d) => &**d,
-        }
-    }
+	fn deref(&self) -> &Self::Target {
+		match *self {
+			Self::Encode(ref e) => &**e,
+			Self::Decoded(ref d) => &**d,
+		}
+	}
 }
 
 /// A encodeable/decodable type abstracting static array slices and a vector.
 pub type DecodeDifferentArray<B, O = B> = DecodeDifferent<&'static [B], Vec<O>>;
 
 impl<B> DecodeDifferentArray<B> {
-    /// Return a slice of contained data.
-    pub fn as_slice(&self) -> &[B] {
-        match *self {
-            Self::Encode(ref e) => e,
-            Self::Decoded(ref d) => &**d,
-        }
-    }
+	/// Return a slice of contained data.
+	pub fn as_slice(&self) -> &[B] {
+		match *self {
+			Self::Encode(ref e) => e,
+			Self::Decoded(ref d) => &**d,
+		}
+	}
 }
 
 type DecodeDifferentStr = DecodeDifferent<&'static str, StringBuf>;
 
 #[cfg(feature = "std")]
 impl DecodeDifferentStr {
-    /// Allocate an owned version of the string.
-    pub fn to_string(&self) -> String {
-        match *self {
-            Self::Encode(ref e) => e.to_string(),
-            Self::Decoded(ref d) => d.clone(),
-        }
-    }
+	/// Allocate an owned version of the string.
+	pub fn to_string(&self) -> String {
+		match *self {
+			Self::Encode(ref e) => e.to_string(),
+			Self::Decoded(ref d) => d.clone(),
+		}
+	}
 }
 
 /// All the metadata about a function.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub struct FunctionMetadata {
-    /// Function name.
+	/// Function name.
 	pub name: DecodeDifferentStr,
-    /// A list of arguments this function takes.
+	/// A list of arguments this function takes.
 	pub arguments: DecodeDifferentArray<FunctionArgumentMetadata>,
-    /// Function documentation.
+	/// Function documentation.
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
@@ -206,9 +207,9 @@ pub struct FunctionMetadata {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub struct FunctionArgumentMetadata {
-    /// Name of the variable for the argument.
+	/// Name of the variable for the argument.
 	pub name: DecodeDifferentStr,
-    /// Type of the parameter.
+	/// Type of the parameter.
 	pub ty: DecodeDifferentStr,
 }
 
@@ -252,9 +253,9 @@ impl<E: Encode + serde::Serialize> serde::Serialize for FnEncode<E> {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub struct OuterEventMetadata {
-    /// Name of the event.
+	/// Name of the event.
 	pub name: DecodeDifferentStr,
-    /// A list of event details.
+	/// A list of event details.
 	pub events: DecodeDifferentArray<
 		(&'static str, FnEncode<&'static [EventMetadata]>),
 		(StringBuf, Vec<EventMetadata>),
@@ -265,11 +266,11 @@ pub struct OuterEventMetadata {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub struct EventMetadata {
-    /// Name of the event.
+	/// Name of the event.
 	pub name: DecodeDifferentStr,
-    /// Arguments of the event.
+	/// Arguments of the event.
 	pub arguments: DecodeDifferentArray<&'static str, StringBuf>,
-    /// Documentation of the event.
+	/// Documentation of the event.
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
@@ -277,15 +278,15 @@ pub struct EventMetadata {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub struct StorageEntryMetadata {
-    /// Variable name of the storage entry.
+	/// Variable name of the storage entry.
 	pub name: DecodeDifferentStr,
-    /// An `Option` modifier of that storage entry.
+	/// An `Option` modifier of that storage entry.
 	pub modifier: StorageEntryModifier,
-    /// Type of the value stored in the entry.
+	/// Type of the value stored in the entry.
 	pub ty: StorageEntryType,
-    /// Default value (SCALE encoded).
+	/// Default value (SCALE encoded).
 	pub default: ByteGetter,
-    /// Storage entry documentation.
+	/// Storage entry documentation.
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
@@ -293,13 +294,13 @@ pub struct StorageEntryMetadata {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub struct ModuleConstantMetadata {
-    /// Name of the module constant.
+	/// Name of the module constant.
 	pub name: DecodeDifferentStr,
-    /// Type of the module constant.
+	/// Type of the module constant.
 	pub ty: DecodeDifferentStr,
-    /// Value stored in the constant (SCALE encoded).
+	/// Value stored in the constant (SCALE encoded).
 	pub value: ByteGetter,
-    /// Documentation of the constant.
+	/// Documentation of the constant.
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
@@ -307,15 +308,15 @@ pub struct ModuleConstantMetadata {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub struct ErrorMetadata {
-    /// Name of the error.
+	/// Name of the error.
 	pub name: DecodeDifferentStr,
-    /// Error variant documentation.
+	/// Error variant documentation.
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
 /// All the metadata about errors in a module.
 pub trait ModuleErrorMetadata {
-    /// Returns error metadata.
+	/// Returns error metadata.
 	fn metadata() -> &'static [ErrorMetadata];
 }
 
@@ -327,7 +328,7 @@ impl ModuleErrorMetadata for &'static str {
 
 /// A technical trait to store lazy initiated vec value as static dyn pointer.
 pub trait DefaultByte: Send + Sync {
-    /// A default value (SCALE encoded).
+	/// A default value (SCALE encoded).
 	fn default_byte(&self) -> Vec<u8>;
 }
 
@@ -376,19 +377,19 @@ impl core::fmt::Debug for DefaultByteGetter {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub enum StorageHasher {
-    /// 128-bit Blake2 hash.
+	/// 128-bit Blake2 hash.
 	Blake2_128,
-    /// 256-bit Blake2 hash.
+	/// 256-bit Blake2 hash.
 	Blake2_256,
-    /// 128-bit Blake2 concatenating multiple hashes.
+	/// 128-bit Blake2 concatenating multiple hashes.
 	Blake2_128Concat,
-    /// 128-bit XX hash.
+	/// 128-bit XX hash.
 	Twox128,
-    /// 256-bit XX hash.
+	/// 256-bit XX hash.
 	Twox256,
-    /// 64-bit XX hashes concatentation.
+	/// 64-bit XX hashes concatentation.
 	Twox64Concat,
-    /// Identity hashing (no hashing).
+	/// Identity hashing (no hashing).
 	Identity,
 }
 
@@ -396,32 +397,32 @@ pub enum StorageHasher {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub enum StorageEntryType {
-    /// Plain storage entry (just the value).
+	/// Plain storage entry (just the value).
 	Plain(DecodeDifferentStr),
-    /// A storage map.
+	/// A storage map.
 	Map {
-        /// Hasher type for the keys.
+		/// Hasher type for the keys.
 		hasher: StorageHasher,
-        /// Key type.
+		/// Key type.
 		key: DecodeDifferentStr,
-        /// Value type.
+		/// Value type.
 		value: DecodeDifferentStr,
 		///
-        /// NOTE is_linked flag previously, unused now to keep backwards compat
-        /// with SCALE encoding.
+		/// NOTE is_linked flag previously, unused now to keep backwards compat
+		/// with SCALE encoding.
 		unused: bool,
 	},
-    /// Storage Double Map.
+	/// Storage Double Map.
 	DoubleMap {
-        /// Hasher type for the keys.
+		/// Hasher type for the keys.
 		hasher: StorageHasher,
-        /// First key type.
+		/// First key type.
 		key1: DecodeDifferentStr,
-        /// Second key type.
+		/// Second key type.
 		key2: DecodeDifferentStr,
-        /// Value type.
+		/// Value type.
 		value: DecodeDifferentStr,
-        /// Hasher for the second key.
+		/// Hasher for the second key.
 		key2_hasher: StorageHasher,
 	},
 }
@@ -430,9 +431,9 @@ pub enum StorageEntryType {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub enum StorageEntryModifier {
-    /// The value may not be set.
+	/// The value may not be set.
 	Optional,
-    /// If the value is not set it will resolve to default value.
+	/// If the value is not set it will resolve to default value.
 	Default,
 }
 
@@ -442,7 +443,7 @@ pub enum StorageEntryModifier {
 pub struct StorageMetadata {
 	/// The common prefix used by all storage entries.
 	pub prefix: DecodeDifferent<&'static str, StringBuf>,
-    /// A list of all storage entries.
+	/// A list of all storage entries.
 	pub entries: DecodeDifferent<&'static [StorageEntryMetadata], Vec<StorageEntryMetadata>>,
 }
 
@@ -450,10 +451,10 @@ pub struct StorageMetadata {
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub struct RuntimeMetadataPrefixed(
-    /// Magic prefix number.
-    pub u32,
-    /// Runtime metadata.
-    pub RuntimeMetadata
+	/// Magic prefix number.
+	pub u32,
+	/// Runtime metadata.
+	pub RuntimeMetadata,
 );
 
 /// Metadata of the extrinsic used by the runtime.
@@ -547,17 +548,17 @@ impl Into<RuntimeMetadataPrefixed> for RuntimeMetadataLastVersion {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub struct ModuleMetadata {
-    /// Name of the pallet.
+	/// Name of the pallet.
 	pub name: DecodeDifferentStr,
-    /// Optional storage items.
+	/// Optional storage items.
 	pub storage: Option<DecodeDifferent<FnEncode<StorageMetadata>, StorageMetadata>>,
-    /// Public calls (dispatchables) to the pallet.
+	/// Public calls (dispatchables) to the pallet.
 	pub calls: ODFnA<FunctionMetadata>,
-    /// Events the pallet may generate.
+	/// Events the pallet may generate.
 	pub event: ODFnA<EventMetadata>,
-    /// Constant values defined on the module (public parameters).
+	/// Constant values defined on the module (public parameters).
 	pub constants: DFnA<ModuleConstantMetadata>,
-    /// Errors the calls may generate.
+	/// Errors the calls may generate.
 	pub errors: DFnA<ErrorMetadata>,
 	/// Define the index of the module, this index will be used for the encoding of module event,
 	/// call and origin variants.

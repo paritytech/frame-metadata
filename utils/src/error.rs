@@ -23,18 +23,18 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Metadata errors.
 #[derive(Debug, derive_more::From, derive_more::Display)]
 pub enum Error {
-    /// Error while decoding metadata from it's SCALE-encoded form.
-    #[display(fmt = "Scale: {}", _0)]
-    Scale(scale::Error),
-    /// Error deserializing metadata from Serde format.
-    #[display(fmt = "Serde: {}", _0)]
-    Serde(serde_json::Error),
-    /// Unexpected version of metadata.
-    #[display(fmt = "Invalid version. Expected: {}, Got: {:?}", expected, got)]
-    InvalidMetadataVersion {
-        /// Numeric value of expected version.
-        expected: u32,
-        /// Full metadata object that was received.
-        got: Box<dyn std::fmt::Debug>,
-    },
+	/// Error while decoding metadata from it's SCALE-encoded form.
+	#[display(fmt = "Scale: {}", _0)]
+	Scale(scale::Error),
+	/// Error deserializing metadata from Serde format.
+	#[display(fmt = "Serde: {}", _0)]
+	Serde(serde_json::Error),
+	/// Unexpected version of metadata.
+	#[display(fmt = "Invalid version. Expected: {}, Got: {:?}", expected, got)]
+	InvalidMetadataVersion {
+		/// Numeric value of expected version.
+		expected: u32,
+		/// Full metadata object that was received.
+		got: Box<dyn std::fmt::Debug>,
+	},
 }

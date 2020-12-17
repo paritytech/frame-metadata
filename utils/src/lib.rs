@@ -28,53 +28,50 @@ pub mod error;
 
 /// Latest metadata utilities.
 pub struct Metadata {
-    metadata: frame_metadata::RuntimeMetadataLastVersion,
+	metadata: frame_metadata::RuntimeMetadataLastVersion,
 }
 
 impl Metadata {
-    /// Create new metadata utilities from decoded/deserialized metadata.
-    pub fn new(metadata: RuntimeMetadata) -> error::Result<Self> {
-        let metadata = match metadata {
-            RuntimeMetadata::V12(latest) => Ok(latest),
-            e => Err(error::Error::InvalidMetadataVersion {
-                expected: 12,
-                got: Box::new(e)
-            }),
-        }?;
-        Ok(Self {
-            metadata,
-        })
-    }
+	/// Create new metadata utilities from decoded/deserialized metadata.
+	pub fn new(metadata: RuntimeMetadata) -> error::Result<Self> {
+		let metadata = match metadata {
+			RuntimeMetadata::V12(latest) => Ok(latest),
+			e => Err(error::Error::InvalidMetadataVersion {
+				expected: 12,
+				got: Box::new(e),
+			}),
+		}?;
+		Ok(Self { metadata })
+	}
 
-    /// Read metadata from a JSON-encoded string.
-    pub fn from_json_str(json: &str) -> error::Result<Self> {
-        let metadata = serde_json::from_str(json)?;
-        Self::new(metadata)
-    }
+	/// Read metadata from a JSON-encoded string.
+	pub fn from_json_str(json: &str) -> error::Result<Self> {
+		let metadata = serde_json::from_str(json)?;
+		Self::new(metadata)
+	}
 
-    /// Read metadata from SCALE-encoded bytes.
-    pub fn from_encoded_bytes(mut bytes: &[u8]) -> error::Result<Self> {
-        let metadata = scale::Decode::decode(&mut bytes)?;
-        Self::new(metadata)
-    }
+	/// Read metadata from SCALE-encoded bytes.
+	pub fn from_encoded_bytes(mut bytes: &[u8]) -> error::Result<Self> {
+		let metadata = scale::Decode::decode(&mut bytes)?;
+		Self::new(metadata)
+	}
 }
 
 impl Metadata {
-    /// List all pallet names in order.
-    pub fn pallets(&self) -> Vec<String> {
-        self.metadata
-            .modules
-            .as_slice()
-            .iter()
-            .map(|pallet| pallet.name.to_string())
-            .collect()
-    }
+	/// List all pallet names in order.
+	pub fn pallets(&self) -> Vec<String> {
+		self.metadata
+			.modules
+			.as_slice()
+			.iter()
+			.map(|pallet| pallet.name.to_string())
+			.collect()
+	}
 
-    /// Return an index of a pallet if any (case insensitive).
-    pub fn pallet_index(&self, name: &str) -> Option<usize> {
-        self.pallets()
-            .iter()
-            .position(|pallet| pallet.eq_ignore_ascii_case(name))
-    }
+	/// Return an index of a pallet if any (case insensitive).
+	pub fn pallet_index(&self, name: &str) -> Option<usize> {
+		self.pallets()
+			.iter()
+			.position(|pallet| pallet.eq_ignore_ascii_case(name))
+	}
 }
-
