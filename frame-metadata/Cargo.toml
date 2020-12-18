@@ -14,12 +14,13 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "1.3.4", default-features = false, features = ["derive"] }
-scale-info = { path = "../../scale-info", package = "scale-info", default-features = false, features = ["derive"] }
+scale-info = { path = "../../scale-info", package = "scale-info", default-features = false, optional = true, features = ["derive"] }
 serde = { version = "1.0.101", optional = true, features = ["derive"] }
 
 [features]
 default = ["std", "v12"]
 v12 = []
+v13 = ["scale-info"]
 std = [
 	"codec/std",
 	"scale-info/std",
