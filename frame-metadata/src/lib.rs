@@ -31,15 +31,11 @@ cfg_if::cfg_if! {
 
 use codec::{Encode, Output};
 
-cfg_if::cfg_if! {
-	if #[cfg(feature = "v12")] {
-		mod v12;
-		pub use v12::*;
-	} else if #[cfg(feature = "v13")] {
-		mod v13;
-		pub use v13::*;
-	}
-}
+#[cfg(feature = "v12")]
+pub mod v12;
+
+#[cfg(feature = "v13")]
+pub mod v13;
 
 /// The metadata of a runtime.
 /// The version ID encoded/decoded through
@@ -73,13 +69,13 @@ pub enum RuntimeMetadata {
 	V11(RuntimeMetadataDeprecated),
 	/// Version 12 for runtime metadata
 	#[cfg(feature = "v12")]
-	V12(RuntimeMetadataV12),
+	V12(v12::RuntimeMetadataV12),
 	/// Version 12 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v12"))]
 	V12(OpaqueMetadata),
 	/// Version 13 for runtime metadata.
 	#[cfg(feature = "v13")]
-	V13(RuntimeMetadataV13),
+	V13(v13::RuntimeMetadataV13),
 	/// Version 13 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v13"))]
 	V13(OpaqueMetadata),
