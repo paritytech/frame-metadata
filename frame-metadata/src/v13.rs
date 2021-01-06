@@ -47,8 +47,8 @@ impl From<RuntimeMetadataLastVersion> for RuntimeMetadataPrefixed {
 
 /// The metadata of a runtime.
 // todo: [AJ] add back clone derive if required (requires PortableRegistry to implement clone)
-#[derive(PartialEq, Eq, Encode, Debug)]
-#[cfg_attr(feature = "std", derive(Decode))]
+#[derive(PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct RuntimeMetadataV13<S: FormString = &'static str> {
 	pub types: PortableRegistry<S>,
 	/// Metadata of all the modules.
@@ -92,15 +92,15 @@ impl IntoPortable for ExtrinsicMetadata {
 }
 
 /// All metadata about an runtime module.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
-#[cfg_attr(feature = "std", derive(Decode))]
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct ModuleMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	// pub storage: Option<DecodeDifferent<FnEncode<StorageMetadata>, StorageMetadata>>,
 	pub calls: Option<Vec<FunctionMetadata<T>>>,
 	pub event: Option<Vec<EventMetadata<T>>>,
 	// pub constants: DFnA<ModuleConstantMetadata>,
-	// pub errors: DFnA<ErrorMetadata>,
+	pub errors: Vec<ErrorMetadata<T>>,
 }
 
 impl IntoPortable for ModuleMetadata {
@@ -111,6 +111,7 @@ impl IntoPortable for ModuleMetadata {
 			name: self.name.into_portable(registry),
 			calls: self.calls.map(|calls| registry.map_into_portable(calls)),
 			event: self.event.map(|event| registry.map_into_portable(event)),
+			errors: registry.map_into_portable(self.errors),
 		}
 	}
 }
@@ -211,6 +212,25 @@ impl IntoPortable for EventMetadata {
 		EventMetadata {
 			name: self.name.into_portable(registry),
 			arguments: registry.map_into_portable(self.arguments),
+			documentation: registry.map_into_portable(self.documentation),
+		}
+	}
+}
+
+/// All the metadata about a module error.
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+pub struct ErrorMetadata<T: Form = MetaForm> {
+	pub name: T::String,
+	pub documentation: Vec<T::String>,
+}
+
+impl IntoPortable for ErrorMetadata {
+	type Output = ErrorMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		ErrorMetadata {
+			name: self.name.into_portable(registry),
 			documentation: registry.map_into_portable(self.documentation),
 		}
 	}
