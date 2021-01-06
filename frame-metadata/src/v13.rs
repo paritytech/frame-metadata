@@ -32,6 +32,9 @@ use scale_info::{
 /// Current prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
+/// Type alias placeholder for `ByteGetter` equivalent. todo: [AJ] figure out what to do here
+pub type ByteGetter = Vec<u8>;
+
 /// Metadata prefixed by a u32 for reserved usage
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
@@ -96,7 +99,7 @@ impl IntoPortable for ExtrinsicMetadata {
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct ModuleMetadata<T: Form = MetaForm> {
 	pub name: T::String,
-	// pub storage: Option<DecodeDifferent<FnEncode<StorageMetadata>, StorageMetadata>>,
+	pub storage: Option<Vec<StorageMetadata<T>>>,
 	pub calls: Option<Vec<FunctionMetadata<T>>>,
 	pub event: Option<Vec<EventMetadata<T>>>,
 	// pub constants: DFnA<ModuleConstantMetadata>,
@@ -109,9 +112,133 @@ impl IntoPortable for ModuleMetadata {
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		ModuleMetadata {
 			name: self.name.into_portable(registry),
+			storage: self
+				.storage
+				.map(|storage| registry.map_into_portable(storage)),
 			calls: self.calls.map(|calls| registry.map_into_portable(calls)),
 			event: self.event.map(|event| registry.map_into_portable(event)),
 			errors: registry.map_into_portable(self.errors),
+		}
+	}
+}
+
+/// All metadata of the storage.
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+pub struct StorageMetadata<T: Form = MetaForm> {
+	/// The common prefix used by all storage entries.
+	pub prefix: T::String,
+	pub entries: Vec<StorageEntryMetadata<T>>,
+}
+
+impl IntoPortable for StorageMetadata {
+	type Output = StorageMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		StorageMetadata {
+			prefix: self.prefix.into_portable(registry),
+			entries: registry.map_into_portable(self.entries),
+		}
+	}
+}
+
+/// All the metadata about one storage entry.
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+pub struct StorageEntryMetadata<T: Form = MetaForm> {
+	pub name: T::String,
+	pub modifier: StorageEntryModifier,
+	pub ty: StorageEntryType<T>,
+	pub default: ByteGetter,
+	pub documentation: Vec<T::String>,
+}
+
+impl IntoPortable for StorageEntryMetadata {
+	type Output = StorageEntryMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		StorageEntryMetadata {
+			name: self.name.into_portable(registry),
+			modifier: self.modifier,
+			ty: self.ty.into_portable(registry),
+			default: self.default,
+			documentation: registry.map_into_portable(self.documentation),
+		}
+	}
+}
+
+/// A storage entry modifier.
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+pub enum StorageEntryModifier {
+	Optional,
+	Default,
+}
+
+/// Hasher used by storage maps
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+pub enum StorageHasher {
+	Blake2_128,
+	Blake2_256,
+	Blake2_128Concat,
+	Twox128,
+	Twox256,
+	Twox64Concat,
+	Identity,
+}
+
+/// A storage entry type.
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+pub enum StorageEntryType<T: Form = MetaForm> {
+	Plain(T::String),
+	Map {
+		hasher: StorageHasher,
+		key: T::String,
+		value: T::String,
+		// is_linked flag previously, unused now to keep backwards compat
+		unused: bool,
+	},
+	DoubleMap {
+		hasher: StorageHasher,
+		key1: T::String,
+		key2: T::String,
+		value: T::String,
+		key2_hasher: StorageHasher,
+	},
+}
+
+impl IntoPortable for StorageEntryType {
+	type Output = StorageEntryType<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		match self {
+			Self::Plain(plain) => StorageEntryType::Plain(plain.into_portable(registry)),
+			Self::Map {
+				hasher,
+				key,
+				value,
+				unused,
+			} => StorageEntryType::Map {
+				hasher,
+				key: key.into_portable(registry),
+				value: value.into_portable(registry),
+				unused,
+			},
+			Self::DoubleMap {
+				hasher,
+				key1,
+				key2,
+				value,
+				key2_hasher,
+			} => StorageEntryType::DoubleMap {
+				hasher,
+				key1: key1.into_portable(registry),
+				key2: key2.into_portable(registry),
+				value: value.into_portable(registry),
+				key2_hasher,
+			},
 		}
 	}
 }
