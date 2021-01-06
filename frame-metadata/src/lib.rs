@@ -23,6 +23,9 @@ cfg_if::cfg_if! {
 	if #[cfg(feature = "std")] {
 		use codec::{Decode, Error, Input};
 		use serde::Serialize;
+	} else {
+		extern crate alloc;
+		use alloc::vec::Vec;
 	}
 }
 
@@ -32,81 +35,60 @@ cfg_if::cfg_if! {
 	if #[cfg(feature = "v12")] {
 		mod v12;
 		pub use v12::*;
-
-		/// The metadata of a runtime.
-		/// The version ID encoded/decoded through
-		/// the enum nature of `RuntimeMetadata`.
-		#[derive(Eq, Encode, PartialEq)]
-		#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-		pub enum RuntimeMetadata {
-			/// Unused; enum filler.
-			V0(RuntimeMetadataDeprecated),
-			/// Version 1 for runtime metadata. No longer used.
-			V1(RuntimeMetadataDeprecated),
-			/// Version 2 for runtime metadata. No longer used.
-			V2(RuntimeMetadataDeprecated),
-			/// Version 3 for runtime metadata. No longer used.
-			V3(RuntimeMetadataDeprecated),
-			/// Version 4 for runtime metadata. No longer used.
-			V4(RuntimeMetadataDeprecated),
-			/// Version 5 for runtime metadata. No longer used.
-			V5(RuntimeMetadataDeprecated),
-			/// Version 6 for runtime metadata. No longer used.
-			V6(RuntimeMetadataDeprecated),
-			/// Version 7 for runtime metadata. No longer used.
-			V7(RuntimeMetadataDeprecated),
-			/// Version 8 for runtime metadata. No longer used.
-			V8(RuntimeMetadataDeprecated),
-			/// Version 9 for runtime metadata. No longer used.
-			V9(RuntimeMetadataDeprecated),
-			/// Version 10 for runtime metadata. No longer used.
-			V10(RuntimeMetadataDeprecated),
-			/// Version 11 for runtime metadata. No longer used.
-			V11(RuntimeMetadataDeprecated),
-			/// Version 12 for runtime metadata.
-			V12(RuntimeMetadataV12),
-		}
 	} else if #[cfg(feature = "v13")] {
 		mod v13;
 		pub use v13::*;
-
-		/// The metadata of a runtime.
-		/// The version ID encoded/decoded through
-		/// the enum nature of `RuntimeMetadata`.
-		#[derive(Eq, Encode, PartialEq)]
-		#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-		pub enum RuntimeMetadata {
-			/// Unused; enum filler.
-			V0(RuntimeMetadataDeprecated),
-			/// Version 1 for runtime metadata. No longer used.
-			V1(RuntimeMetadataDeprecated),
-			/// Version 2 for runtime metadata. No longer used.
-			V2(RuntimeMetadataDeprecated),
-			/// Version 3 for runtime metadata. No longer used.
-			V3(RuntimeMetadataDeprecated),
-			/// Version 4 for runtime metadata. No longer used.
-			V4(RuntimeMetadataDeprecated),
-			/// Version 5 for runtime metadata. No longer used.
-			V5(RuntimeMetadataDeprecated),
-			/// Version 6 for runtime metadata. No longer used.
-			V6(RuntimeMetadataDeprecated),
-			/// Version 7 for runtime metadata. No longer used.
-			V7(RuntimeMetadataDeprecated),
-			/// Version 8 for runtime metadata. No longer used.
-			V8(RuntimeMetadataDeprecated),
-			/// Version 9 for runtime metadata. No longer used.
-			V9(RuntimeMetadataDeprecated),
-			/// Version 10 for runtime metadata. No longer used.
-			V10(RuntimeMetadataDeprecated),
-			/// Version 11 for runtime metadata. No longer used.
-			V11(RuntimeMetadataDeprecated),
-			/// Version 12 for runtime metadata. No longer used.
-			V12(RuntimeMetadataDeprecated),
-			/// Version 13 for runtime metadata.
-			V13(RuntimeMetadataV13),
-		}
 	}
 }
+
+/// The metadata of a runtime.
+/// The version ID encoded/decoded through
+/// the enum nature of `RuntimeMetadata`.
+#[derive(Eq, Encode, PartialEq)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+pub enum RuntimeMetadata {
+	/// Unused; enum filler.
+	V0(RuntimeMetadataDeprecated),
+	/// Version 1 for runtime metadata. No longer used.
+	V1(RuntimeMetadataDeprecated),
+	/// Version 2 for runtime metadata. No longer used.
+	V2(RuntimeMetadataDeprecated),
+	/// Version 3 for runtime metadata. No longer used.
+	V3(RuntimeMetadataDeprecated),
+	/// Version 4 for runtime metadata. No longer used.
+	V4(RuntimeMetadataDeprecated),
+	/// Version 5 for runtime metadata. No longer used.
+	V5(RuntimeMetadataDeprecated),
+	/// Version 6 for runtime metadata. No longer used.
+	V6(RuntimeMetadataDeprecated),
+	/// Version 7 for runtime metadata. No longer used.
+	V7(RuntimeMetadataDeprecated),
+	/// Version 8 for runtime metadata. No longer used.
+	V8(RuntimeMetadataDeprecated),
+	/// Version 9 for runtime metadata. No longer used.
+	V9(RuntimeMetadataDeprecated),
+	/// Version 10 for runtime metadata. No longer used.
+	V10(RuntimeMetadataDeprecated),
+	/// Version 11 for runtime metadata. No longer used.
+	V11(RuntimeMetadataDeprecated),
+	/// Version 12 for runtime metadata
+	#[cfg(feature = "v12")]
+	V12(RuntimeMetadataV12),
+	/// Version 12 for runtime metadata, as raw encoded bytes.
+	#[cfg(not(feature = "v12"))]
+	V12(OpaqueMetadata),
+	/// Version 13 for runtime metadata.
+	#[cfg(feature = "v13")]
+	V13(RuntimeMetadataV13),
+	/// Version 13 for runtime metadata, as raw encoded bytes.
+	#[cfg(not(feature = "v13"))]
+	V13(OpaqueMetadata),
+}
+
+/// Stores the encoded `RuntimeMetadata` as raw bytes.
+#[derive(Encode, Eq, PartialEq)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+pub struct OpaqueMetadata(pub Vec<u8>);
 
 /// Enum that should fail.
 #[derive(Eq, PartialEq)]
