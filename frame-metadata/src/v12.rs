@@ -17,8 +17,6 @@
 
 //! Decodable variant of the RuntimeMetadata.
 
-#![cfg_attr(not(feature = "std"), no_std)]
-
 use codec::{Encode, Output};
 
 cfg_if::cfg_if! {
@@ -39,11 +37,6 @@ cfg_if::cfg_if! {
 
 /// Current prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
-
-/// On `no_std` we do not support `Decode` and thus `StringBuf` is just `&'static str`.
-/// So, if someone tries to decode this stuff on `no_std`, they will get a compilation error.
-#[cfg(not(feature = "std"))]
-type StringBuf = &'static str;
 
 /// A type that decodes to a different type than it encodes.
 /// The user needs to make sure that both types use the same encoding.
@@ -367,8 +360,8 @@ pub struct ExtrinsicMetadata {
 }
 
 /// The metadata of a runtime.
-#[derive(Eq, Encode, PartialEq, Debug)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+#[derive(Eq, Encode, PartialEq)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct RuntimeMetadataV12 {
 	/// Metadata of all the modules.
 	pub modules: DecodeDifferentArray<ModuleMetadata>,
