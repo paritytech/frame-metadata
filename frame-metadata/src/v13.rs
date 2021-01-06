@@ -53,17 +53,19 @@ pub struct RuntimeMetadataV13<S: FormString = &'static str> {
 	pub types: PortableRegistry<S>,
 	/// Metadata of all the modules.
 	pub modules: Vec<ModuleMetadata<PortableForm>>,
-	// /// Metadata of the extrinsic.
-	// pub extrinsic: ExtrinsicMetadata<F>,
+	/// Metadata of the extrinsic.
+	pub extrinsic: ExtrinsicMetadata<PortableForm>,
 }
 
 impl RuntimeMetadataV13 {
-	pub fn new(modules: Vec<ModuleMetadata>) -> Self {
+	pub fn new(modules: Vec<ModuleMetadata>, extrinsic: ExtrinsicMetadata) -> Self {
 		let mut registry = Registry::new();
 		let modules = registry.map_into_portable(modules);
+		let extrinsic = extrinsic.into_portable(&mut registry);
 		Self {
 			types: registry.into(),
 			modules,
+			extrinsic,
 		}
 	}
 }
