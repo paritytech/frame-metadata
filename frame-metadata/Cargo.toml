@@ -25,5 +25,6 @@ v13 = ["scale-info"]
 std = [
 	"codec/std",
 	"scale-info/std",
+	"scale-info/serde",
 	"serde",
 ]
