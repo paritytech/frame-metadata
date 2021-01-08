@@ -23,7 +23,6 @@ cfg_if::cfg_if! {
 	if #[cfg(feature = "std")] {
 		use codec::{Decode, Error, Input};
 		use serde::{
-			de::DeserializeOwned,
 			Deserialize,
 			Serialize,
 		};
@@ -48,6 +47,7 @@ cfg_if::cfg_if! {
 		pub trait FormString {}
 
 		impl FormString for &'static str {}
+		#[cfg(feature = "std")]
 		impl FormString for String {}
 	} else {
 		pub(crate) use scale_info::form::FormString;
@@ -58,11 +58,8 @@ cfg_if::cfg_if! {
 /// The version ID encoded/decoded through
 /// the enum nature of `RuntimeMetadata`.
 #[derive(Eq, Encode, PartialEq)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "S: Serialize", deserialize = "S: DeserializeOwned"))
-)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
 pub enum RuntimeMetadata<S: FormString = &'static str> {
 	/// Unused; enum filler.
 	V0(RuntimeMetadataDeprecated),

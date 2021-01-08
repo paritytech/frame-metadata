@@ -22,11 +22,7 @@ use codec::{Encode, Output};
 cfg_if::cfg_if! {
 	if #[cfg(feature = "std")] {
 		use codec::{Decode, Error, Input};
-		use serde::{
-			de::DeserializeOwned,
-			Deserialize,
-			Serialize,
-		};
+		use serde::Serialize;
 
 		type StringBuf = String;
 	} else {
@@ -368,11 +364,8 @@ pub struct ExtrinsicMetadata {
 
 /// The metadata of a runtime.
 #[derive(Eq, Encode, PartialEq)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "S: Serialize", deserialize = "S: DeserializeOwned"))
-)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
 pub struct RuntimeMetadataV12<S = ()> {
 	/// Metadata of all the modules.
 	pub modules: DecodeDifferentArray<ModuleMetadata>,
