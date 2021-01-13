@@ -83,7 +83,7 @@ pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	/// Extrinsic version.
 	pub version: u8,
 	/// The signed extensions in the order they appear in the extrinsic.
-	pub signed_extensions: Vec<T::Type>,
+	pub signed_extensions: Vec<SignedExtensionMetadata<T>>,
 }
 
 impl IntoPortable for ExtrinsicMetadata {
@@ -92,6 +92,28 @@ impl IntoPortable for ExtrinsicMetadata {
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		ExtrinsicMetadata {
 			version: self.version,
+			signed_extensions: registry.map_into_portable(self.signed_extensions),
+		}
+	}
+}
+
+/// Metadata of an extrinsic's signed extension.
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+pub struct SignedExtensionMetadata<T: Form = MetaForm> {
+	/// The unique .
+	pub identifier: T::String,
+	/// The signed extensions in the order they appear in the extrinsic.
+	pub signed_extensions: T::Type,
+}
+
+impl IntoPortable for SignedExtensionMetadata {
+	type Output = SignedExtensionMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		SignedExtensionMetadata {
+			identifier: self.identifier.into_portable(registry),
 			signed_extensions: registry.register_types(self.signed_extensions),
 		}
 	}
