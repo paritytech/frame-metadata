@@ -39,7 +39,10 @@ pub type ByteGetter = Vec<u8>;
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
-pub struct RuntimeMetadataPrefixed<S: FormString = &'static str>(pub u32, pub super::RuntimeMetadata<S>);
+pub struct RuntimeMetadataPrefixed<S: FormString = &'static str>(
+	pub u32,
+	pub super::RuntimeMetadata<S>,
+);
 
 pub type RuntimeMetadataLastVersion = RuntimeMetadataV13;
 
@@ -78,7 +81,10 @@ impl RuntimeMetadataV13 {
 /// Metadata of the extrinsic used by the runtime.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	/// The type of the extrinsic.
 	pub ty: T::Type,
@@ -103,7 +109,10 @@ impl IntoPortable for ExtrinsicMetadata {
 /// Metadata of an extrinsic's signed extension.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub struct SignedExtensionMetadata<T: Form = MetaForm> {
 	/// The unique signed extension identifier, which may be different from the type name.
 	pub identifier: T::String,
@@ -125,7 +134,10 @@ impl IntoPortable for SignedExtensionMetadata {
 /// All metadata about an runtime module.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub struct ModuleMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub storage: Option<Vec<StorageMetadata<T>>>,
@@ -157,7 +169,10 @@ impl IntoPortable for ModuleMetadata {
 /// All metadata of the storage.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub struct StorageMetadata<T: Form = MetaForm> {
 	/// The common prefix used by all storage entries.
 	pub prefix: T::String,
@@ -178,7 +193,10 @@ impl IntoPortable for StorageMetadata {
 /// All the metadata about one storage entry.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub struct StorageEntryMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub modifier: StorageEntryModifier,
@@ -225,7 +243,10 @@ pub enum StorageHasher {
 /// A storage entry type.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub enum StorageEntryType<T: Form = MetaForm> {
 	Plain(T::String),
 	Map {
@@ -281,7 +302,10 @@ impl IntoPortable for StorageEntryType {
 /// All the metadata about a function.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub struct FunctionMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub arguments: Vec<FunctionArgumentMetadata<T>>,
@@ -303,7 +327,10 @@ impl IntoPortable for FunctionMetadata {
 /// All the metadata about a function argument.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub struct FunctionArgumentMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub ty: T::Type,
@@ -325,7 +352,10 @@ impl IntoPortable for FunctionArgumentMetadata {
 /// All the metadata about an outer event.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub struct OuterEventMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub events: Vec<ModuleEventMetadata<T>>,
@@ -345,7 +375,10 @@ impl IntoPortable for OuterEventMetadata {
 /// Metadata about a module event.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub struct ModuleEventMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub events: Vec<EventMetadata<T>>,
@@ -365,7 +398,10 @@ impl IntoPortable for ModuleEventMetadata {
 /// All the metadata about an event.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub struct EventMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub arguments: Vec<TypeSpec<T>>,
@@ -387,7 +423,10 @@ impl IntoPortable for EventMetadata {
 /// All the metadata about a module error.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub struct ErrorMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub documentation: Vec<T::String>,
@@ -423,7 +462,10 @@ impl IntoPortable for ErrorMetadata {
 /// simply be a type alias to `fn(i32, i32) -> Ordering`.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
 pub struct TypeSpec<T: Form = MetaForm> {
 	/// The actual type.
 	pub ty: T::Type,
