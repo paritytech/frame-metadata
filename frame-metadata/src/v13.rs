@@ -161,7 +161,9 @@ impl IntoPortable for ModuleMetadata {
 				.map(|storage| registry.map_into_portable(storage)),
 			calls: self.calls.map(|calls| registry.map_into_portable(calls)),
 			event: self.event.map(|event| registry.map_into_portable(event)),
-			constants: self.constants.map(|constant| registry.map_into_portable(constant)),
+			constants: self
+				.constants
+				.map(|constant| registry.map_into_portable(constant)),
 			errors: registry.map_into_portable(self.errors),
 			index: self.index,
 		}
