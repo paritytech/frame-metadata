@@ -145,9 +145,9 @@ pub struct ModuleMetadata<T: Form = MetaForm> {
 	pub event: Option<Vec<EventMetadata<T>>>,
 	// pub constants: DFnA<ModuleConstantMetadata>,
 	pub errors: Vec<ErrorMetadata<T>>,
-	// /// Define the index of the module, this index will be used for the encoding of module event,
-	// /// call and origin variants.
-	// pub index: u8,
+	/// Define the index of the module, this index will be used for the encoding of module event,
+	/// call and origin variants.
+	pub index: u8,
 }
 
 impl IntoPortable for ModuleMetadata {
@@ -162,6 +162,7 @@ impl IntoPortable for ModuleMetadata {
 			calls: self.calls.map(|calls| registry.map_into_portable(calls)),
 			event: self.event.map(|event| registry.map_into_portable(event)),
 			errors: registry.map_into_portable(self.errors),
+			index: self.index,
 		}
 	}
 }
