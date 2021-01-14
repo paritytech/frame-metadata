@@ -62,7 +62,7 @@ cfg_if::cfg_if! {
 #[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
 pub enum RuntimeMetadata<S: FormString = &'static str> {
 	/// Unused; enum filler.
-	V0(RuntimeMetadataDeprecated),
+	V0(core::marker::PhantomData<S>),
 	/// Version 1 for runtime metadata. No longer used.
 	V1(RuntimeMetadataDeprecated),
 	/// Version 2 for runtime metadata. No longer used.
