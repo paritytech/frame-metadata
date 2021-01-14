@@ -143,7 +143,7 @@ pub struct ModuleMetadata<T: Form = MetaForm> {
 	pub storage: Option<Vec<StorageMetadata<T>>>,
 	pub calls: Option<Vec<FunctionMetadata<T>>>,
 	pub event: Option<Vec<EventMetadata<T>>>,
-	// pub constants: DFnA<ModuleConstantMetadata>,
+	pub constants: Option<Vec<ModuleConstantMetadata<T>>>,
 	pub errors: Vec<ErrorMetadata<T>>,
 	/// Define the index of the module, this index will be used for the encoding of module event,
 	/// call and origin variants.
@@ -161,6 +161,7 @@ impl IntoPortable for ModuleMetadata {
 				.map(|storage| registry.map_into_portable(storage)),
 			calls: self.calls.map(|calls| registry.map_into_portable(calls)),
 			event: self.event.map(|event| registry.map_into_portable(event)),
+			constants: self.constants.map(|constant| registry.map_into_portable(constant)),
 			errors: registry.map_into_portable(self.errors),
 			index: self.index,
 		}
@@ -416,6 +417,33 @@ impl IntoPortable for EventMetadata {
 		EventMetadata {
 			name: self.name.into_portable(registry),
 			arguments: registry.map_into_portable(self.arguments),
+			documentation: registry.map_into_portable(self.documentation),
+		}
+	}
+}
+
+/// All the metadata about one module constant.
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct ModuleConstantMetadata<T: Form = MetaForm> {
+	pub name: T::String,
+	pub ty: T::Type,
+	pub value: ByteGetter,
+	pub documentation: Vec<T::String>,
+}
+
+impl IntoPortable for ModuleConstantMetadata {
+	type Output = ModuleConstantMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		ModuleConstantMetadata {
+			name: self.name.into_portable(registry),
+			ty: registry.register_type(&self.ty),
+			value: self.value,
 			documentation: registry.map_into_portable(self.documentation),
 		}
 	}
