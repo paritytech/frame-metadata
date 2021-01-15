@@ -22,7 +22,10 @@
 cfg_if::cfg_if! {
 	if #[cfg(feature = "std")] {
 		use codec::{Decode, Error, Input};
-		use serde::Serialize;
+		use serde::{
+			Deserialize,
+			Serialize,
+		};
 	} else {
 		extern crate alloc;
 		use alloc::vec::Vec;
@@ -37,14 +40,29 @@ pub mod v12;
 #[cfg(feature = "v13")]
 pub mod v13;
 
+cfg_if::cfg_if! {
+	if #[cfg(not(feature = "v13"))] {
+		/// Dummy trait in place of `scale_info::form::FormString`.
+		/// Since the `scale-info` crate is only imported for the `v13` feature.
+		pub trait FormString {}
+
+		impl FormString for &'static str {}
+		#[cfg(feature = "std")]
+		impl FormString for String {}
+	} else {
+		pub(crate) use scale_info::form::FormString;
+	}
+}
+
 /// The metadata of a runtime.
 /// The version ID encoded/decoded through
 /// the enum nature of `RuntimeMetadata`.
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub enum RuntimeMetadata {
+#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
+pub enum RuntimeMetadata<S: FormString = &'static str> {
 	/// Unused; enum filler.
-	V0(RuntimeMetadataDeprecated),
+	V0(core::marker::PhantomData<S>),
 	/// Version 1 for runtime metadata. No longer used.
 	V1(RuntimeMetadataDeprecated),
 	/// Version 2 for runtime metadata. No longer used.
@@ -69,13 +87,13 @@ pub enum RuntimeMetadata {
 	V11(RuntimeMetadataDeprecated),
 	/// Version 12 for runtime metadata
 	#[cfg(feature = "v12")]
-	V12(v12::RuntimeMetadataV12),
+	V12(v12::RuntimeMetadataV12<S>),
 	/// Version 12 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v12"))]
 	V12(OpaqueMetadata),
 	/// Version 13 for runtime metadata.
 	#[cfg(feature = "v13")]
-	V13(v13::RuntimeMetadataV13),
+	V13(v13::RuntimeMetadataV13<S>),
 	/// Version 13 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v13"))]
 	V13(OpaqueMetadata),
@@ -83,12 +101,12 @@ pub enum RuntimeMetadata {
 
 /// Stores the encoded `RuntimeMetadata` as raw bytes.
 #[derive(Encode, Eq, PartialEq)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
 pub struct OpaqueMetadata(pub Vec<u8>);
 
 /// Enum that should fail.
 #[derive(Eq, PartialEq)]
-#[cfg_attr(feature = "std", derive(Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Debug))]
 pub enum RuntimeMetadataDeprecated {}
 
 impl Encode for RuntimeMetadataDeprecated {

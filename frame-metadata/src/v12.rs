@@ -35,6 +35,9 @@ cfg_if::cfg_if! {
 	}
 }
 
+use super::FormString;
+use core::marker::PhantomData;
+
 /// Current prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
@@ -347,7 +350,10 @@ pub struct StorageMetadata {
 /// Metadata prefixed by a u32 for reserved usage
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct RuntimeMetadataPrefixed(pub u32, pub super::RuntimeMetadata);
+pub struct RuntimeMetadataPrefixed<S: FormString = &'static str>(
+	pub u32,
+	pub super::RuntimeMetadata<S>,
+);
 
 /// Metadata of the extrinsic used by the runtime.
 #[derive(Eq, Encode, PartialEq)]
@@ -362,11 +368,14 @@ pub struct ExtrinsicMetadata {
 /// The metadata of a runtime.
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct RuntimeMetadataV12 {
+#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
+pub struct RuntimeMetadataV12<S = ()> {
 	/// Metadata of all the modules.
 	pub modules: DecodeDifferentArray<ModuleMetadata>,
 	/// Metadata of the extrinsic.
 	pub extrinsic: ExtrinsicMetadata,
+	/// Marker for dummy type parameter required by v13 but not used here.
+	pub marker: PhantomData<S>,
 }
 
 /// The latest version of the metadata.
