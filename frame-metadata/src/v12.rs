@@ -35,7 +35,6 @@ cfg_if::cfg_if! {
 	}
 }
 
-use super::FormString;
 use core::marker::PhantomData;
 
 /// Current prefix of metadata
@@ -347,14 +346,6 @@ pub struct StorageMetadata {
 	pub entries: DecodeDifferent<&'static [StorageEntryMetadata], Vec<StorageEntryMetadata>>,
 }
 
-/// Metadata prefixed by a u32 for reserved usage
-#[derive(Eq, Encode, PartialEq)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct RuntimeMetadataPrefixed<S: FormString = &'static str>(
-	pub u32,
-	pub super::RuntimeMetadata<S>,
-);
-
 /// Metadata of the extrinsic used by the runtime.
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
@@ -398,9 +389,3 @@ pub struct ModuleMetadata {
 
 type ODFnA<T> = Option<DFnA<T>>;
 type DFnA<T> = DecodeDifferent<FnEncode<&'static [T]>, Vec<T>>;
-
-impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
-	fn into(self) -> Vec<u8> {
-		self.encode()
-	}
-}

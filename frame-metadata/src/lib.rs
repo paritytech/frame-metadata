@@ -54,6 +54,18 @@ cfg_if::cfg_if! {
 	}
 }
 
+/// Metadata prefixed by a u32 for reserved usage
+#[derive(Eq, Encode, PartialEq)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
+pub struct RuntimeMetadataPrefixed<S: FormString = &'static str>(pub u32, pub RuntimeMetadata<S>);
+
+impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
+	fn into(self) -> Vec<u8> {
+		self.encode()
+	}
+}
+
 /// The metadata of a runtime.
 /// The version ID encoded/decoded through
 /// the enum nature of `RuntimeMetadata`.

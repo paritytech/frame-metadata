@@ -22,6 +22,7 @@ cfg_if::cfg_if! {
 	}
 }
 
+use super::RuntimeMetadataPrefixed;
 use codec::Encode;
 use scale_info::prelude::vec::Vec;
 use scale_info::{
@@ -35,18 +36,9 @@ pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 /// Type alias placeholder for `ByteGetter` equivalent. todo: [AJ] figure out what to do here
 pub type ByteGetter = Vec<u8>;
 
-/// Metadata prefixed by a u32 for reserved usage
-#[derive(Eq, Encode, PartialEq)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
-pub struct RuntimeMetadataPrefixed<S: FormString = &'static str>(
-	pub u32,
-	pub super::RuntimeMetadata<S>,
-);
-
 pub type RuntimeMetadataLastVersion = RuntimeMetadataV13;
 
-impl From<RuntimeMetadataLastVersion> for RuntimeMetadataPrefixed {
+impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 	fn from(metadata: RuntimeMetadataLastVersion) -> RuntimeMetadataPrefixed {
 		RuntimeMetadataPrefixed(META_RESERVED, super::RuntimeMetadata::V13(metadata))
 	}
