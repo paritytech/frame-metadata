@@ -57,7 +57,6 @@ impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
 /// the enum nature of `RuntimeMetadata`.
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
 pub enum RuntimeMetadata {
 	/// Unused; enum filler.
 	V0(RuntimeMetadataDeprecated),
