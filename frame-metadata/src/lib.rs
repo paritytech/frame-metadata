@@ -43,7 +43,6 @@ pub mod v13;
 /// Metadata prefixed by a u32 for reserved usage
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
 pub struct RuntimeMetadataPrefixed(pub u32, pub RuntimeMetadata);
 
 impl Into<Vec<u8>> for RuntimeMetadataPrefixed {

@@ -48,7 +48,6 @@ impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 // todo: [AJ] add back clone derive if required (requires PortableRegistry to implement clone)
 #[derive(PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
 pub struct RuntimeMetadataV13 {
 	pub types: PortableRegistry,
 	/// Metadata of all the modules.
