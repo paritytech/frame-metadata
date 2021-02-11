@@ -40,25 +40,10 @@ pub mod v12;
 #[cfg(feature = "v13")]
 pub mod v13;
 
-cfg_if::cfg_if! {
-	if #[cfg(not(feature = "v13"))] {
-		/// Dummy trait in place of `scale_info::form::FormString`.
-		/// Since the `scale-info` crate is only imported for the `v13` feature.
-		pub trait FormString {}
-
-		impl FormString for &'static str {}
-		#[cfg(feature = "std")]
-		impl FormString for String {}
-	} else {
-		pub(crate) use scale_info::form::FormString;
-	}
-}
-
 /// Metadata prefixed by a u32 for reserved usage
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
-pub struct RuntimeMetadataPrefixed<S: FormString = &'static str>(pub u32, pub RuntimeMetadata<S>);
+pub struct RuntimeMetadataPrefixed(pub u32, pub RuntimeMetadata);
 
 impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
 	fn into(self) -> Vec<u8> {
@@ -71,10 +56,9 @@ impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
 /// the enum nature of `RuntimeMetadata`.
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
-pub enum RuntimeMetadata<S: FormString = &'static str> {
+pub enum RuntimeMetadata {
 	/// Unused; enum filler.
-	V0(core::marker::PhantomData<S>),
+	V0(RuntimeMetadataDeprecated),
 	/// Version 1 for runtime metadata. No longer used.
 	V1(RuntimeMetadataDeprecated),
 	/// Version 2 for runtime metadata. No longer used.
@@ -99,13 +83,13 @@ pub enum RuntimeMetadata<S: FormString = &'static str> {
 	V11(RuntimeMetadataDeprecated),
 	/// Version 12 for runtime metadata
 	#[cfg(feature = "v12")]
-	V12(v12::RuntimeMetadataV12<S>),
+	V12(v12::RuntimeMetadataV12),
 	/// Version 12 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v12"))]
 	V12(OpaqueMetadata),
 	/// Version 13 for runtime metadata.
 	#[cfg(feature = "v13")]
-	V13(v13::RuntimeMetadataV13<S>),
+	V13(v13::RuntimeMetadataV13),
 	/// Version 13 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v13"))]
 	V13(OpaqueMetadata),
@@ -122,7 +106,7 @@ pub struct OpaqueMetadata(pub Vec<u8>);
 pub enum RuntimeMetadataDeprecated {}
 
 impl Encode for RuntimeMetadataDeprecated {
-	fn encode_to<W: Output>(&self, _dest: &mut W) {}
+	fn encode_to<W: Output + ?Sized>(&self, _dest: &mut W) {}
 }
 
 impl codec::EncodeLike for RuntimeMetadataDeprecated {}

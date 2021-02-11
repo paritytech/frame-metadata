@@ -59,7 +59,7 @@ where
 	B: Encode + 'static,
 	O: Encode + 'static,
 {
-	fn encode_to<W: Output>(&self, dest: &mut W) {
+	fn encode_to<W: Output + ?Sized>(&self, dest: &mut W) {
 		match self {
 			DecodeDifferent::Encode(b) => b.encode_to(dest),
 			DecodeDifferent::Decoded(o) => o.encode_to(dest),
@@ -160,7 +160,7 @@ where
 	E: Encode + 'static;
 
 impl<E: Encode> Encode for FnEncode<E> {
-	fn encode_to<W: Output>(&self, dest: &mut W) {
+	fn encode_to<W: Output + ?Sized>(&self, dest: &mut W) {
 		self.0().encode_to(dest);
 	}
 }
@@ -262,7 +262,7 @@ pub struct DefaultByteGetter(pub &'static dyn DefaultByte);
 pub type ByteGetter = DecodeDifferent<DefaultByteGetter, Vec<u8>>;
 
 impl Encode for DefaultByteGetter {
-	fn encode_to<W: Output>(&self, dest: &mut W) {
+	fn encode_to<W: Output + ?Sized>(&self, dest: &mut W) {
 		self.0.default_byte().encode_to(dest)
 	}
 }
@@ -359,7 +359,6 @@ pub struct ExtrinsicMetadata {
 /// The metadata of a runtime.
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
 pub struct RuntimeMetadataV12<S = ()> {
 	/// Metadata of all the modules.
 	pub modules: DecodeDifferentArray<ModuleMetadata>,

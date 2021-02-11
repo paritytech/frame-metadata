@@ -26,7 +26,7 @@ use super::RuntimeMetadataPrefixed;
 use codec::Encode;
 use scale_info::prelude::vec::Vec;
 use scale_info::{
-	form::{Form, FormString, MetaForm, PortableForm},
+	form::{Form, MetaForm, PortableForm},
 	meta_type, IntoPortable, PortableRegistry, Registry, TypeInfo,
 };
 
@@ -48,13 +48,12 @@ impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 // todo: [AJ] add back clone derive if required (requires PortableRegistry to implement clone)
 #[derive(PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "S: Serialize")))]
-pub struct RuntimeMetadataV13<S: FormString = &'static str> {
-	pub types: PortableRegistry<S>,
+pub struct RuntimeMetadataV13 {
+	pub types: PortableRegistry,
 	/// Metadata of all the modules.
-	pub modules: Vec<ModuleMetadata<PortableForm<S>>>,
+	pub modules: Vec<ModuleMetadata<PortableForm>>,
 	/// Metadata of the extrinsic.
-	pub extrinsic: ExtrinsicMetadata<PortableForm<S>>,
+	pub extrinsic: ExtrinsicMetadata<PortableForm>,
 }
 
 impl RuntimeMetadataV13 {
