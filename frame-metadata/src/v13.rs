@@ -243,19 +243,19 @@ pub enum StorageHasher {
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
 pub enum StorageEntryType<T: Form = MetaForm> {
-	Plain(T::String),
+	Plain(T::Type),
 	Map {
 		hasher: StorageHasher,
-		key: T::String,
-		value: T::String,
+		key: T::Type,
+		value: T::Type,
 		// is_linked flag previously, unused now to keep backwards compat
 		unused: bool,
 	},
 	DoubleMap {
 		hasher: StorageHasher,
-		key1: T::String,
-		key2: T::String,
-		value: T::String,
+		key1: T::Type,
+		key2: T::Type,
+		value: T::Type,
 		key2_hasher: StorageHasher,
 	},
 }
@@ -265,7 +265,7 @@ impl IntoPortable for StorageEntryType {
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			Self::Plain(plain) => StorageEntryType::Plain(plain.into_portable(registry)),
+			Self::Plain(plain) => StorageEntryType::Plain(registry.register_type(&plain)),
 			Self::Map {
 				hasher,
 				key,
@@ -273,8 +273,8 @@ impl IntoPortable for StorageEntryType {
 				unused,
 			} => StorageEntryType::Map {
 				hasher,
-				key: key.into_portable(registry),
-				value: value.into_portable(registry),
+				key: registry.register_type(&key),
+				value: registry.register_type(&value),
 				unused,
 			},
 			Self::DoubleMap {
@@ -285,9 +285,9 @@ impl IntoPortable for StorageEntryType {
 				key2_hasher,
 			} => StorageEntryType::DoubleMap {
 				hasher,
-				key1: key1.into_portable(registry),
-				key2: key2.into_portable(registry),
-				value: value.into_portable(registry),
+				key1: registry.register_type(&key1),
+				key2: registry.register_type(&key2),
+				value: registry.register_type(&value),
 				key2_hasher,
 			},
 		}
