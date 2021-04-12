@@ -147,9 +147,7 @@ impl IntoPortable for ModuleMetadata {
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		ModuleMetadata {
 			name: self.name.into_portable(registry),
-			storage: self
-				.storage
-				.map(|storage| registry.map_into_portable(storage)),
+			storage: self.storage.map(|storage| storage.into_portable(registry)),
 			calls: self.calls.map(|calls| registry.map_into_portable(calls)),
 			event: self.event.map(|event| registry.map_into_portable(event)),
 			constants: self
