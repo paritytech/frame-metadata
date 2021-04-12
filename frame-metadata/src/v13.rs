@@ -131,7 +131,7 @@ impl IntoPortable for SignedExtensionMetadata {
 )]
 pub struct ModuleMetadata<T: Form = MetaForm> {
 	pub name: T::String,
-	pub storage: Option<Vec<StorageMetadata<T>>>,
+	pub storage: Option<StorageMetadata<T>>,
 	pub calls: Option<Vec<FunctionMetadata<T>>>,
 	pub event: Option<Vec<EventMetadata<T>>>,
 	pub constants: Option<Vec<ModuleConstantMetadata<T>>>,
