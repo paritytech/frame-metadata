@@ -132,10 +132,10 @@ impl IntoPortable for SignedExtensionMetadata {
 pub struct ModuleMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub storage: Option<StorageMetadata<T>>,
-	pub calls: Option<Vec<FunctionMetadata<T>>>,
-	pub event: Option<Vec<EventMetadata<T>>>,
+	pub calls: Option<ModuleCallsMetadata<T>>,
+	pub event: Option<ModuleEventMetadata<T>>,
 	pub constants: Option<Vec<ModuleConstantMetadata<T>>>,
-	pub errors: Vec<ErrorMetadata<T>>,
+	pub errors: ErrorMetadata<T>,
 	/// Define the index of the module, this index will be used for the encoding of module event,
 	/// call and origin variants.
 	pub index: u8,
@@ -148,12 +148,12 @@ impl IntoPortable for ModuleMetadata {
 		ModuleMetadata {
 			name: self.name.into_portable(registry),
 			storage: self.storage.map(|storage| storage.into_portable(registry)),
-			calls: self.calls.map(|calls| registry.map_into_portable(calls)),
-			event: self.event.map(|event| registry.map_into_portable(event)),
+			calls: self.calls.map(|calls| calls.into_portable(registry)),
+			event: self.event.map(|event| event.into_portable(registry)),
 			constants: self
 				.constants
 				.map(|constant| registry.map_into_portable(constant)),
-			errors: registry.map_into_portable(self.errors),
+			errors: self.errors.into_portable(registry),
 			index: self.index,
 		}
 	}
@@ -292,6 +292,30 @@ impl IntoPortable for StorageEntryType {
 	}
 }
 
+/// Metadata for all
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct ModuleCallsMetadata<T: Form = MetaForm> {
+	/// The corresponding enum type for the module call.
+	pub ty: T::Type,
+	pub calls: Vec<FunctionMetadata<T>>,
+}
+
+impl IntoPortable for ModuleCallsMetadata {
+	type Output = ModuleCallsMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		ModuleCallsMetadata {
+			ty: registry.register_type(&self.ty),
+			calls: registry.map_into_portable(self.calls),
+		}
+	}
+}
+
 /// All the metadata about a function.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
@@ -327,7 +351,6 @@ impl IntoPortable for FunctionMetadata {
 pub struct FunctionArgumentMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub ty: T::Type,
-	pub is_compact: bool,
 }
 
 impl IntoPortable for FunctionArgumentMetadata {
@@ -337,30 +360,6 @@ impl IntoPortable for FunctionArgumentMetadata {
 		FunctionArgumentMetadata {
 			name: self.name.into_portable(registry),
 			ty: registry.register_type(&self.ty),
-			is_compact: self.is_compact,
-		}
-	}
-}
-
-/// All the metadata about an outer event.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct OuterEventMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub events: Vec<ModuleEventMetadata<T>>,
-}
-
-impl IntoPortable for OuterEventMetadata {
-	type Output = OuterEventMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		OuterEventMetadata {
-			name: self.name.into_portable(registry),
-			events: registry.map_into_portable(self.events),
 		}
 	}
 }
@@ -373,8 +372,7 @@ impl IntoPortable for OuterEventMetadata {
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
 pub struct ModuleEventMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub events: Vec<EventMetadata<T>>,
+	pub ty: T::Type,
 }
 
 impl IntoPortable for ModuleEventMetadata {
@@ -382,33 +380,7 @@ impl IntoPortable for ModuleEventMetadata {
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		ModuleEventMetadata {
-			name: self.name.into_portable(registry),
-			events: registry.map_into_portable(self.events),
-		}
-	}
-}
-
-/// All the metadata about an event.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct EventMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub arguments: Vec<TypeSpec<T>>,
-	pub documentation: Vec<T::String>,
-}
-
-impl IntoPortable for EventMetadata {
-	type Output = EventMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		EventMetadata {
-			name: self.name.into_portable(registry),
-			arguments: registry.map_into_portable(self.arguments),
-			documentation: registry.map_into_portable(self.documentation),
+			ty: registry.register_type(&self.ty),
 		}
 	}
 }
@@ -440,16 +412,16 @@ impl IntoPortable for ModuleConstantMetadata {
 	}
 }
 
-/// All the metadata about a module error.
+/// Metadata about a module error.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
 	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	serde(bound(serialize = "T::Type: Serialize"))
 )]
 pub struct ErrorMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub documentation: Vec<T::String>,
+	/// The error type information.
+	pub ty: T::Type
 }
 
 impl IntoPortable for ErrorMetadata {
@@ -457,8 +429,7 @@ impl IntoPortable for ErrorMetadata {
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		ErrorMetadata {
-			name: self.name.into_portable(registry),
-			documentation: registry.map_into_portable(self.documentation),
+			ty: registry.register_type(&self.ty)
 		}
 	}
 }
