@@ -344,10 +344,6 @@ impl IntoPortable for FunctionMetadata {
 /// All the metadata about a function argument.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
 pub struct FunctionArgumentMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub ty: T::Type,
@@ -367,10 +363,6 @@ impl IntoPortable for FunctionArgumentMetadata {
 /// Metadata about the pallet event type.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
 pub struct PalletEventMetadata<T: Form = MetaForm> {
 	pub ty: T::Type,
 }
