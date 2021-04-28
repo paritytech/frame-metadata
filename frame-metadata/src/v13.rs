@@ -134,7 +134,7 @@ pub struct ModuleMetadata<T: Form = MetaForm> {
 	pub storage: Option<StorageMetadata<T>>,
 	pub calls: Option<Vec<FunctionMetadata<T>>>,
 	pub event: Option<Vec<EventMetadata<T>>>,
-	pub constants: Option<Vec<ModuleConstantMetadata<T>>>,
+	pub constants: Vec<ModuleConstantMetadata<T>>,
 	pub errors: Vec<ErrorMetadata<T>>,
 	/// Define the index of the module, this index will be used for the encoding of module event,
 	/// call and origin variants.
@@ -150,9 +150,7 @@ impl IntoPortable for ModuleMetadata {
 			storage: self.storage.map(|storage| storage.into_portable(registry)),
 			calls: self.calls.map(|calls| registry.map_into_portable(calls)),
 			event: self.event.map(|event| registry.map_into_portable(event)),
-			constants: self
-				.constants
-				.map(|constant| registry.map_into_portable(constant)),
+			constants: registry.map_into_portable(self.constants),
 			errors: registry.map_into_portable(self.errors),
 			index: self.index,
 		}
