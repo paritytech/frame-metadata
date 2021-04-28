@@ -407,13 +407,10 @@ impl IntoPortable for PalletConstantMetadata {
 /// Metadata about a pallet error.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize"))
-)]
+#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize")))]
 pub struct ErrorMetadata<T: Form = MetaForm> {
 	/// The error type information.
-	pub ty: T::Type
+	pub ty: T::Type,
 }
 
 impl IntoPortable for ErrorMetadata {
@@ -421,7 +418,7 @@ impl IntoPortable for ErrorMetadata {
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		ErrorMetadata {
-			ty: registry.register_type(&self.ty)
+			ty: registry.register_type(&self.ty),
 		}
 	}
 }
