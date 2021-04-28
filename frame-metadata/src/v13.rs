@@ -325,7 +325,6 @@ impl IntoPortable for FunctionMetadata {
 pub struct FunctionArgumentMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub ty: T::Type,
-	pub is_compact: bool,
 }
 
 impl IntoPortable for FunctionArgumentMetadata {
@@ -335,7 +334,6 @@ impl IntoPortable for FunctionArgumentMetadata {
 		FunctionArgumentMetadata {
 			name: self.name.into_portable(registry),
 			ty: registry.register_type(&self.ty),
-			is_compact: self.is_compact,
 		}
 	}
 }
