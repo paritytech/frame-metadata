@@ -135,7 +135,7 @@ pub struct PalletMetadata<T: Form = MetaForm> {
 	pub calls: Option<PalletCallMetadata<T>>,
 	pub event: Option<PalletEventMetadata<T>>,
 	pub constants: Vec<PalletConstantMetadata<T>>,
-	pub errors: ErrorMetadata<T>,
+	pub errors: PalletErrorMetadata<T>,
 	/// Define the index of the pallet, this index will be used for the encoding of pallet event,
 	/// call and origin variants.
 	pub index: u8,
@@ -406,16 +406,16 @@ impl IntoPortable for PalletConstantMetadata {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize")))]
-pub struct ErrorMetadata<T: Form = MetaForm> {
+pub struct PalletErrorMetadata<T: Form = MetaForm> {
 	/// The error type information.
 	pub ty: T::Type,
 }
 
-impl IntoPortable for ErrorMetadata {
-	type Output = ErrorMetadata<PortableForm>;
+impl IntoPortable for PalletErrorMetadata {
+	type Output = PalletErrorMetadata<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		ErrorMetadata {
+		PalletErrorMetadata {
 			ty: registry.register_type(&self.ty),
 		}
 	}
