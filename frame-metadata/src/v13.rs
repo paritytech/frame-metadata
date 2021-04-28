@@ -134,7 +134,7 @@ pub struct PalletMetadata<T: Form = MetaForm> {
 	pub storage: Option<StorageMetadata<T>>,
 	pub calls: Option<PalletCallMetadata<T>>,
 	pub event: Option<PalletEventMetadata<T>>,
-	pub constants: Option<Vec<PalletConstantMetadata<T>>>,
+	pub constants: Vec<PalletConstantMetadata<T>>,
 	pub errors: ErrorMetadata<T>,
 	/// Define the index of the pallet, this index will be used for the encoding of pallet event,
 	/// call and origin variants.
@@ -150,9 +150,7 @@ impl IntoPortable for PalletMetadata {
 			storage: self.storage.map(|storage| storage.into_portable(registry)),
 			calls: self.calls.map(|calls| calls.into_portable(registry)),
 			event: self.event.map(|event| event.into_portable(registry)),
-			constants: self
-				.constants
-				.map(|constant| registry.map_into_portable(constant)),
+			constants: registry.map_into_portable(self.constants),
 			errors: self.errors.into_portable(registry),
 			index: self.index,
 		}
