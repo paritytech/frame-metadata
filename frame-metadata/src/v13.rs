@@ -151,7 +151,7 @@ impl IntoPortable for PalletMetadata {
 			calls: self.calls.map(|calls| calls.into_portable(registry)),
 			event: self.event.map(|event| event.into_portable(registry)),
 			constants: registry.map_into_portable(self.constants),
-			error: self.error.into_portable(registry),
+			error: self.error.map(|error| error.into_portable(registry)),
 			index: self.index,
 		}
 	}
