@@ -50,20 +50,20 @@ impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct RuntimeMetadataV13 {
 	pub types: PortableRegistry,
-	/// Metadata of all the modules.
-	pub modules: Vec<ModuleMetadata<PortableForm>>,
+	/// Metadata of all the pallets.
+	pub pallets: Vec<PalletMetadata<PortableForm>>,
 	/// Metadata of the extrinsic.
 	pub extrinsic: ExtrinsicMetadata<PortableForm>,
 }
 
 impl RuntimeMetadataV13 {
-	pub fn new(modules: Vec<ModuleMetadata>, extrinsic: ExtrinsicMetadata) -> Self {
+	pub fn new(pallets: Vec<PalletMetadata>, extrinsic: ExtrinsicMetadata) -> Self {
 		let mut registry = Registry::new();
-		let modules = registry.map_into_portable(modules);
+		let pallets = registry.map_into_portable(pallets);
 		let extrinsic = extrinsic.into_portable(&mut registry);
 		Self {
 			types: registry.into(),
-			modules,
+			pallets,
 			extrinsic,
 		}
 	}
@@ -122,59 +122,59 @@ impl IntoPortable for SignedExtensionMetadata {
 	}
 }
 
-/// All metadata about an runtime module.
+/// All metadata about an runtime pallet.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
 	feature = "std",
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
-pub struct ModuleMetadata<T: Form = MetaForm> {
+pub struct PalletMetadata<T: Form = MetaForm> {
 	pub name: T::String,
-	pub storage: Option<StorageMetadata<T>>,
-	pub calls: Option<Vec<FunctionMetadata<T>>>,
-	pub event: Option<Vec<EventMetadata<T>>>,
-	pub constants: Vec<ModuleConstantMetadata<T>>,
-	pub errors: Vec<ErrorMetadata<T>>,
-	/// Define the index of the module, this index will be used for the encoding of module event,
+	pub storage: Option<PalletStorageMetadata<T>>,
+	pub calls: Option<PalletCallMetadata<T>>,
+	pub event: Option<PalletEventMetadata<T>>,
+	pub constants: Vec<PalletConstantMetadata<T>>,
+	pub error: Option<PalletErrorMetadata<T>>,
+	/// Define the index of the pallet, this index will be used for the encoding of pallet event,
 	/// call and origin variants.
 	pub index: u8,
 }
 
-impl IntoPortable for ModuleMetadata {
-	type Output = ModuleMetadata<PortableForm>;
+impl IntoPortable for PalletMetadata {
+	type Output = PalletMetadata<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		ModuleMetadata {
+		PalletMetadata {
 			name: self.name.into_portable(registry),
 			storage: self.storage.map(|storage| storage.into_portable(registry)),
-			calls: self.calls.map(|calls| registry.map_into_portable(calls)),
-			event: self.event.map(|event| registry.map_into_portable(event)),
+			calls: self.calls.map(|calls| calls.into_portable(registry)),
+			event: self.event.map(|event| event.into_portable(registry)),
 			constants: registry.map_into_portable(self.constants),
-			errors: registry.map_into_portable(self.errors),
+			error: self.error.map(|error| error.into_portable(registry)),
 			index: self.index,
 		}
 	}
 }
 
-/// All metadata of the storage.
+/// All metadata of the pallet's storage.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
 	feature = "std",
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
-pub struct StorageMetadata<T: Form = MetaForm> {
+pub struct PalletStorageMetadata<T: Form = MetaForm> {
 	/// The common prefix used by all storage entries.
 	pub prefix: T::String,
 	pub entries: Vec<StorageEntryMetadata<T>>,
 }
 
-impl IntoPortable for StorageMetadata {
-	type Output = StorageMetadata<PortableForm>;
+impl IntoPortable for PalletStorageMetadata {
+	type Output = PalletStorageMetadata<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		StorageMetadata {
+		PalletStorageMetadata {
 			prefix: self.prefix.into_portable(registry),
 			entries: registry.map_into_portable(self.entries),
 		}
@@ -290,6 +290,30 @@ impl IntoPortable for StorageEntryType {
 	}
 }
 
+/// Metadata for all calls in a pallet
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct PalletCallMetadata<T: Form = MetaForm> {
+	/// The corresponding enum type for the pallet call.
+	pub ty: T::Type,
+	pub calls: Vec<FunctionMetadata<T>>,
+}
+
+impl IntoPortable for PalletCallMetadata {
+	type Output = PalletCallMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		PalletCallMetadata {
+			ty: registry.register_type(&self.ty),
+			calls: registry.map_into_portable(self.calls),
+		}
+	}
+}
+
 /// All the metadata about a function.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
@@ -318,10 +342,6 @@ impl IntoPortable for FunctionMetadata {
 /// All the metadata about a function argument.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
 pub struct FunctionArgumentMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub ty: T::Type,
@@ -338,96 +358,42 @@ impl IntoPortable for FunctionArgumentMetadata {
 	}
 }
 
-/// All the metadata about an outer event.
+/// Metadata about the pallet event type.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct OuterEventMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub events: Vec<ModuleEventMetadata<T>>,
+pub struct PalletEventMetadata<T: Form = MetaForm> {
+	pub ty: T::Type,
 }
 
-impl IntoPortable for OuterEventMetadata {
-	type Output = OuterEventMetadata<PortableForm>;
+impl IntoPortable for PalletEventMetadata {
+	type Output = PalletEventMetadata<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		OuterEventMetadata {
-			name: self.name.into_portable(registry),
-			events: registry.map_into_portable(self.events),
+		PalletEventMetadata {
+			ty: registry.register_type(&self.ty),
 		}
 	}
 }
 
-/// Metadata about a module event.
+/// All the metadata about one pallet constant.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
 	feature = "std",
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
-pub struct ModuleEventMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub events: Vec<EventMetadata<T>>,
-}
-
-impl IntoPortable for ModuleEventMetadata {
-	type Output = ModuleEventMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		ModuleEventMetadata {
-			name: self.name.into_portable(registry),
-			events: registry.map_into_portable(self.events),
-		}
-	}
-}
-
-/// All the metadata about an event.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct EventMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub arguments: Vec<TypeSpec<T>>,
-	pub documentation: Vec<T::String>,
-}
-
-impl IntoPortable for EventMetadata {
-	type Output = EventMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		EventMetadata {
-			name: self.name.into_portable(registry),
-			arguments: registry.map_into_portable(self.arguments),
-			documentation: registry.map_into_portable(self.documentation),
-		}
-	}
-}
-
-/// All the metadata about one module constant.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct ModuleConstantMetadata<T: Form = MetaForm> {
+pub struct PalletConstantMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub ty: T::Type,
 	pub value: ByteGetter,
 	pub documentation: Vec<T::String>,
 }
 
-impl IntoPortable for ModuleConstantMetadata {
-	type Output = ModuleConstantMetadata<PortableForm>;
+impl IntoPortable for PalletConstantMetadata {
+	type Output = PalletConstantMetadata<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		ModuleConstantMetadata {
+		PalletConstantMetadata {
 			name: self.name.into_portable(registry),
 			ty: registry.register_type(&self.ty),
 			value: self.value,
@@ -436,25 +402,21 @@ impl IntoPortable for ModuleConstantMetadata {
 	}
 }
 
-/// All the metadata about a module error.
+/// Metadata about a pallet error.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct ErrorMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub documentation: Vec<T::String>,
+#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize")))]
+pub struct PalletErrorMetadata<T: Form = MetaForm> {
+	/// The error type information.
+	pub ty: T::Type,
 }
 
-impl IntoPortable for ErrorMetadata {
-	type Output = ErrorMetadata<PortableForm>;
+impl IntoPortable for PalletErrorMetadata {
+	type Output = PalletErrorMetadata<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		ErrorMetadata {
-			name: self.name.into_portable(registry),
-			documentation: registry.map_into_portable(self.documentation),
+		PalletErrorMetadata {
+			ty: registry.register_type(&self.ty),
 		}
 	}
 }
