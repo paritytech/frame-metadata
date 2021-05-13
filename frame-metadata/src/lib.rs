@@ -45,9 +45,9 @@ pub mod v13;
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct RuntimeMetadataPrefixed(pub u32, pub RuntimeMetadata);
 
-impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
-	fn into(self) -> Vec<u8> {
-		self.encode()
+impl Into<OpaqueMetadata> for RuntimeMetadataPrefixed {
+	fn into(self) -> OpaqueMetadata {
+		OpaqueMetadata(self.encode())
 	}
 }
 
