@@ -110,10 +110,16 @@ jobs:
           command:                 check
           toolchain:               stable
           args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v13
+      - name:                      Checking v14
+        uses:                      actions-rs/cargo@master
+        with:
+          command:                 check
+          toolchain:               stable
+          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v14
       - name:                      Checking all versions
         uses:                      actions-rs/cargo@master
         with:
           command:                 check
           toolchain:               stable
-          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v12,v13
+          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v12,v13,v14
 
