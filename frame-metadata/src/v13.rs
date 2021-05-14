@@ -349,11 +349,6 @@ pub struct StorageMetadata {
 	pub entries: DecodeDifferent<&'static [StorageEntryMetadata], Vec<StorageEntryMetadata>>,
 }
 
-/// Metadata prefixed by a u32 for reserved usage
-#[derive(Eq, Encode, PartialEq, Debug)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
-pub struct RuntimeMetadataPrefixed(pub u32, pub RuntimeMetadata);
-
 /// Metadata of the extrinsic used by the runtime.
 #[derive(Eq, Encode, PartialEq, Debug)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize))]
@@ -365,60 +360,6 @@ pub struct ExtrinsicMetadata {
 }
 
 /// The metadata of a runtime.
-/// The version ID encoded/decoded through
-/// the enum nature of `RuntimeMetadata`.
-#[derive(Eq, Encode, PartialEq, Debug)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
-pub enum RuntimeMetadata {
-	/// Unused; enum filler.
-	V0(RuntimeMetadataDeprecated),
-	/// Version 1 for runtime metadata. No longer used.
-	V1(RuntimeMetadataDeprecated),
-	/// Version 2 for runtime metadata. No longer used.
-	V2(RuntimeMetadataDeprecated),
-	/// Version 3 for runtime metadata. No longer used.
-	V3(RuntimeMetadataDeprecated),
-	/// Version 4 for runtime metadata. No longer used.
-	V4(RuntimeMetadataDeprecated),
-	/// Version 5 for runtime metadata. No longer used.
-	V5(RuntimeMetadataDeprecated),
-	/// Version 6 for runtime metadata. No longer used.
-	V6(RuntimeMetadataDeprecated),
-	/// Version 7 for runtime metadata. No longer used.
-	V7(RuntimeMetadataDeprecated),
-	/// Version 8 for runtime metadata. No longer used.
-	V8(RuntimeMetadataDeprecated),
-	/// Version 9 for runtime metadata. No longer used.
-	V9(RuntimeMetadataDeprecated),
-	/// Version 10 for runtime metadata. No longer used.
-	V10(RuntimeMetadataDeprecated),
-	/// Version 11 for runtime metadata. No longer used.
-	V11(RuntimeMetadataDeprecated),
-	/// Version 12 for runtime metadata. No longer used.
-	V12(RuntimeMetadataDeprecated),
-	/// Version 13 for runtime metadata.
-	V13(RuntimeMetadataV13),
-}
-
-/// Enum that should fail.
-#[derive(Eq, PartialEq, Debug)]
-#[cfg_attr(feature = "std", derive(Serialize))]
-pub enum RuntimeMetadataDeprecated {}
-
-impl Encode for RuntimeMetadataDeprecated {
-	fn encode_to<W: Output + ?Sized>(&self, _dest: &mut W) {}
-}
-
-impl codec::EncodeLike for RuntimeMetadataDeprecated {}
-
-#[cfg(feature = "std")]
-impl Decode for RuntimeMetadataDeprecated {
-	fn decode<I: Input>(_input: &mut I) -> Result<Self, Error> {
-		Err("Decoding is not supported".into())
-	}
-}
-
-/// The metadata of a runtime.
 #[derive(Eq, Encode, PartialEq, Debug)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize))]
 pub struct RuntimeMetadataV13 {
@@ -427,9 +368,6 @@ pub struct RuntimeMetadataV13 {
 	/// Metadata of the extrinsic.
 	pub extrinsic: ExtrinsicMetadata,
 }
-
-/// The latest version of the metadata.
-pub type RuntimeMetadataLastVersion = RuntimeMetadataV13;
 
 /// All metadata about an runtime module.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
