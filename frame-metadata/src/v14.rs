@@ -254,6 +254,11 @@ pub enum StorageEntryType<T: Form = MetaForm> {
 		value: T::Type,
 		key2_hasher: StorageHasher,
 	},
+	NMap {
+		keys: Vec<T::Type>,
+		hashers: Vec<StorageHasher>,
+		value: T::Type,
+	},
 }
 
 impl IntoPortable for StorageEntryType {
@@ -285,6 +290,15 @@ impl IntoPortable for StorageEntryType {
 				key2: registry.register_type(&key2),
 				value: registry.register_type(&value),
 				key2_hasher,
+			},
+			StorageEntryType::NMap {
+				keys,
+				hashers,
+				value,
+			} => StorageEntryType::NMap {
+				keys: registry.register_types(keys),
+				hashers,
+				value: registry.register_type(&value),
 			},
 		}
 	}
