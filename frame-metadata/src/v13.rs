@@ -1,6 +1,6 @@
 // This file is part of Substrate.
 
-// Copyright (C) 2018-2020 Parity Technologies (UK) Ltd.
+// Copyright (C) 2018-2021 Parity Technologies (UK) Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,212 +15,258 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! Decodable variant of the RuntimeMetadata.
+
+use codec::{Encode, Output};
+
 cfg_if::cfg_if! {
 	if #[cfg(feature = "std")] {
-		use codec::Decode;
+		use codec::{Decode, Error, Input};
 		use serde::Serialize;
+
+		type StringBuf = String;
+	} else {
+		extern crate alloc;
+		use alloc::vec::Vec;
+
+		/// On `no_std` we do not support `Decode` and thus `StringBuf` is just `&'static str`.
+		/// So, if someone tries to decode this stuff on `no_std`, they will get a compilation error.
+		type StringBuf = &'static str;
 	}
 }
-
-use super::RuntimeMetadataPrefixed;
-use codec::Encode;
-use scale_info::prelude::vec::Vec;
-use scale_info::{
-	form::{Form, MetaForm, PortableForm},
-	meta_type, IntoPortable, PortableRegistry, Registry, TypeInfo,
-};
 
 /// Current prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
-/// Type alias placeholder for `ByteGetter` equivalent. todo: [AJ] figure out what to do here
-pub type ByteGetter = Vec<u8>;
-
-pub type RuntimeMetadataLastVersion = RuntimeMetadataV13;
-
-impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
-	fn from(metadata: RuntimeMetadataLastVersion) -> RuntimeMetadataPrefixed {
-		RuntimeMetadataPrefixed(META_RESERVED, super::RuntimeMetadata::V13(metadata))
-	}
+/// A type that decodes to a different type than it encodes.
+/// The user needs to make sure that both types use the same encoding.
+///
+/// For example a `&'static [ &'static str ]` can be decoded to a `Vec<String>`.
+#[derive(Clone)]
+pub enum DecodeDifferent<B, O> where B: 'static, O: 'static {
+	Encode(B),
+	Decoded(O),
 }
 
-/// The metadata of a runtime.
-// todo: [AJ] add back clone derive if required (requires PortableRegistry to implement clone)
-#[derive(PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct RuntimeMetadataV13 {
-	pub types: PortableRegistry,
-	/// Metadata of all the pallets.
-	pub pallets: Vec<PalletMetadata<PortableForm>>,
-	/// Metadata of the extrinsic.
-	pub extrinsic: ExtrinsicMetadata<PortableForm>,
-}
-
-impl RuntimeMetadataV13 {
-	pub fn new(pallets: Vec<PalletMetadata>, extrinsic: ExtrinsicMetadata) -> Self {
-		let mut registry = Registry::new();
-		let pallets = registry.map_into_portable(pallets);
-		let extrinsic = extrinsic.into_portable(&mut registry);
-		Self {
-			types: registry.into(),
-			pallets,
-			extrinsic,
+impl<B, O> Encode for DecodeDifferent<B, O> where B: Encode + 'static, O: Encode + 'static {
+	fn encode_to<W: Output + ?Sized>(&self, dest: &mut W) {
+		match self {
+			DecodeDifferent::Encode(b) => b.encode_to(dest),
+			DecodeDifferent::Decoded(o) => o.encode_to(dest),
 		}
 	}
 }
 
-/// Metadata of the extrinsic used by the runtime.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct ExtrinsicMetadata<T: Form = MetaForm> {
-	/// The type of the extrinsic.
-	pub ty: T::Type,
-	/// Extrinsic version.
-	pub version: u8,
-	/// The signed extensions in the order they appear in the extrinsic.
-	pub signed_extensions: Vec<SignedExtensionMetadata<T>>,
+impl<B, O> codec::EncodeLike for DecodeDifferent<B, O> where B: Encode + 'static, O: Encode + 'static {}
+
+#[cfg(feature = "std")]
+impl<B, O> Decode for DecodeDifferent<B, O> where B: 'static, O: Decode + 'static {
+	fn decode<I: Input>(input: &mut I) -> Result<Self, Error> {
+		<O>::decode(input).map(|val| {
+			DecodeDifferent::Decoded(val)
+		})
+	}
 }
 
-impl IntoPortable for ExtrinsicMetadata {
-	type Output = ExtrinsicMetadata<PortableForm>;
+impl<B, O> PartialEq for DecodeDifferent<B, O>
+	where
+		B: Encode + Eq + PartialEq + 'static,
+		O: Encode + Eq + PartialEq + 'static,
+{
+	fn eq(&self, other: &Self) -> bool {
+		self.encode() == other.encode()
+	}
+}
 
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		ExtrinsicMetadata {
-			ty: registry.register_type(&self.ty),
-			version: self.version,
-			signed_extensions: registry.map_into_portable(self.signed_extensions),
+impl<B, O> Eq for DecodeDifferent<B, O>
+	where B: Encode + Eq + PartialEq + 'static, O: Encode + Eq + PartialEq + 'static
+{}
+
+impl<B, O> core::fmt::Debug for DecodeDifferent<B, O>
+	where
+		B: core::fmt::Debug + Eq + 'static,
+		O: core::fmt::Debug + Eq + 'static,
+{
+	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+		match self {
+			DecodeDifferent::Encode(b) => b.fmt(f),
+			DecodeDifferent::Decoded(o) => o.fmt(f),
 		}
 	}
 }
 
-/// Metadata of an extrinsic's signed extension.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct SignedExtensionMetadata<T: Form = MetaForm> {
-	/// The unique signed extension identifier, which may be different from the type name.
-	pub identifier: T::String,
-	/// The signed extensions in the order they appear in the extrinsic.
-	pub ty: T::Type,
-}
-
-impl IntoPortable for SignedExtensionMetadata {
-	type Output = SignedExtensionMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		SignedExtensionMetadata {
-			identifier: self.identifier.into_portable(registry),
-			ty: registry.register_type(&self.ty),
+#[cfg(feature = "std")]
+impl<B, O> serde::Serialize for DecodeDifferent<B, O>
+	where
+		B: serde::Serialize + 'static,
+		O: serde::Serialize + 'static,
+{
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer {
+		match self {
+			DecodeDifferent::Encode(b) => b.serialize(serializer),
+			DecodeDifferent::Decoded(o) => o.serialize(serializer),
 		}
 	}
 }
 
-/// All metadata about an runtime pallet.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct PalletMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub storage: Option<PalletStorageMetadata<T>>,
-	pub calls: Option<PalletCallMetadata<T>>,
-	pub event: Option<PalletEventMetadata<T>>,
-	pub constants: Vec<PalletConstantMetadata<T>>,
-	pub error: Option<PalletErrorMetadata<T>>,
-	/// Define the index of the pallet, this index will be used for the encoding of pallet event,
-	/// call and origin variants.
-	pub index: u8,
+pub type DecodeDifferentArray<B, O=B> = DecodeDifferent<&'static [B], Vec<O>>;
+
+type DecodeDifferentStr = DecodeDifferent<&'static str, StringBuf>;
+
+/// All the metadata about a function.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub struct FunctionMetadata {
+	pub name: DecodeDifferentStr,
+	pub arguments: DecodeDifferentArray<FunctionArgumentMetadata>,
+	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-impl IntoPortable for PalletMetadata {
-	type Output = PalletMetadata<PortableForm>;
+/// All the metadata about a function argument.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub struct FunctionArgumentMetadata {
+	pub name: DecodeDifferentStr,
+	pub ty: DecodeDifferentStr,
+}
 
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		PalletMetadata {
-			name: self.name.into_portable(registry),
-			storage: self.storage.map(|storage| storage.into_portable(registry)),
-			calls: self.calls.map(|calls| calls.into_portable(registry)),
-			event: self.event.map(|event| event.into_portable(registry)),
-			constants: registry.map_into_portable(self.constants),
-			error: self.error.map(|error| error.into_portable(registry)),
-			index: self.index,
-		}
+/// Newtype wrapper for support encoding functions (actual the result of the function).
+#[derive(Clone, Eq)]
+pub struct FnEncode<E>(pub fn() -> E) where E: Encode + 'static;
+
+impl<E: Encode> Encode for FnEncode<E> {
+	fn encode_to<W: Output + ?Sized>(&self, dest: &mut W) {
+		self.0().encode_to(dest);
 	}
 }
 
-/// All metadata of the pallet's storage.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct PalletStorageMetadata<T: Form = MetaForm> {
-	/// The common prefix used by all storage entries.
-	pub prefix: T::String,
-	pub entries: Vec<StorageEntryMetadata<T>>,
+impl<E: Encode> codec::EncodeLike for FnEncode<E> {}
+
+impl<E: Encode + PartialEq> PartialEq for FnEncode<E> {
+	fn eq(&self, other: &Self) -> bool {
+		self.0().eq(&other.0())
+	}
 }
 
-impl IntoPortable for PalletStorageMetadata {
-	type Output = PalletStorageMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		PalletStorageMetadata {
-			prefix: self.prefix.into_portable(registry),
-			entries: registry.map_into_portable(self.entries),
-		}
+impl<E: Encode + core::fmt::Debug> core::fmt::Debug for FnEncode<E> {
+	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+		self.0().fmt(f)
 	}
+}
+
+#[cfg(feature = "std")]
+impl<E: Encode + serde::Serialize> serde::Serialize for FnEncode<E> {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer {
+		self.0().serialize(serializer)
+	}
+}
+
+/// All the metadata about an outer event.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub struct OuterEventMetadata {
+	pub name: DecodeDifferentStr,
+	pub events: DecodeDifferentArray<
+		(&'static str, FnEncode<&'static [EventMetadata]>),
+		(StringBuf, Vec<EventMetadata>)
+	>,
+}
+
+/// All the metadata about an event.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub struct EventMetadata {
+	pub name: DecodeDifferentStr,
+	pub arguments: DecodeDifferentArray<&'static str, StringBuf>,
+	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
 /// All the metadata about one storage entry.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct StorageEntryMetadata<T: Form = MetaForm> {
-	pub name: T::String,
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub struct StorageEntryMetadata {
+	pub name: DecodeDifferentStr,
 	pub modifier: StorageEntryModifier,
-	pub ty: StorageEntryType<T>,
+	pub ty: StorageEntryType,
 	pub default: ByteGetter,
-	pub documentation: Vec<T::String>,
+	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-impl IntoPortable for StorageEntryMetadata {
-	type Output = StorageEntryMetadata<PortableForm>;
+/// All the metadata about one module constant.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub struct ModuleConstantMetadata {
+	pub name: DecodeDifferentStr,
+	pub ty: DecodeDifferentStr,
+	pub value: ByteGetter,
+	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
+}
 
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		StorageEntryMetadata {
-			name: self.name.into_portable(registry),
-			modifier: self.modifier,
-			ty: self.ty.into_portable(registry),
-			default: self.default,
-			documentation: registry.map_into_portable(self.documentation),
-		}
+/// All the metadata about a module error.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub struct ErrorMetadata {
+	pub name: DecodeDifferentStr,
+	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
+}
+
+/// All the metadata about errors in a module.
+pub trait ModuleErrorMetadata {
+	fn metadata() -> &'static [ErrorMetadata];
+}
+
+impl ModuleErrorMetadata for &'static str {
+	fn metadata() -> &'static [ErrorMetadata] {
+		&[]
 	}
 }
 
-/// A storage entry modifier.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub enum StorageEntryModifier {
-	Optional,
-	Default,
+/// A technical trait to store lazy initiated vec value as static dyn pointer.
+pub trait DefaultByte: Send + Sync {
+	fn default_byte(&self) -> Vec<u8>;
+}
+
+/// Wrapper over dyn pointer for accessing a cached once byte value.
+#[derive(Clone)]
+pub struct DefaultByteGetter(pub &'static dyn DefaultByte);
+
+/// Decode different for static lazy initiated byte value.
+pub type ByteGetter = DecodeDifferent<DefaultByteGetter, Vec<u8>>;
+
+impl Encode for DefaultByteGetter {
+	fn encode_to<W: Output + ?Sized>(&self, dest: &mut W) {
+		self.0.default_byte().encode_to(dest)
+	}
+}
+
+impl codec::EncodeLike for DefaultByteGetter {}
+
+impl PartialEq<DefaultByteGetter> for DefaultByteGetter {
+	fn eq(&self, other: &DefaultByteGetter) -> bool {
+		let left = self.0.default_byte();
+		let right = other.0.default_byte();
+		left.eq(&right)
+	}
+}
+
+impl Eq for DefaultByteGetter { }
+
+#[cfg(feature = "std")]
+impl serde::Serialize for DefaultByteGetter {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer {
+		self.0.default_byte().serialize(serializer)
+	}
+}
+
+impl core::fmt::Debug for DefaultByteGetter {
+	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+		self.0.default_byte().fmt(f)
+	}
 }
 
 /// Hasher used by storage maps
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
 pub enum StorageHasher {
 	Blake2_128,
 	Blake2_256,
@@ -232,245 +278,144 @@ pub enum StorageHasher {
 }
 
 /// A storage entry type.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub enum StorageEntryType<T: Form = MetaForm> {
-	Plain(T::Type),
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub enum StorageEntryType {
+	Plain(DecodeDifferentStr),
 	Map {
 		hasher: StorageHasher,
-		key: T::Type,
-		value: T::Type,
+		key: DecodeDifferentStr,
+		value: DecodeDifferentStr,
 		// is_linked flag previously, unused now to keep backwards compat
 		unused: bool,
 	},
 	DoubleMap {
 		hasher: StorageHasher,
-		key1: T::Type,
-		key2: T::Type,
-		value: T::Type,
+		key1: DecodeDifferentStr,
+		key2: DecodeDifferentStr,
+		value: DecodeDifferentStr,
 		key2_hasher: StorageHasher,
+	},
+	NMap {
+		keys: DecodeDifferentArray<&'static str, StringBuf>,
+		hashers: DecodeDifferentArray<StorageHasher>,
+		value: DecodeDifferentStr,
 	},
 }
 
-impl IntoPortable for StorageEntryType {
-	type Output = StorageEntryType<PortableForm>;
+/// A storage entry modifier.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub enum StorageEntryModifier {
+	Optional,
+	Default,
+}
 
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		match self {
-			Self::Plain(plain) => StorageEntryType::Plain(registry.register_type(&plain)),
-			Self::Map {
-				hasher,
-				key,
-				value,
-				unused,
-			} => StorageEntryType::Map {
-				hasher,
-				key: registry.register_type(&key),
-				value: registry.register_type(&value),
-				unused,
-			},
-			Self::DoubleMap {
-				hasher,
-				key1,
-				key2,
-				value,
-				key2_hasher,
-			} => StorageEntryType::DoubleMap {
-				hasher,
-				key1: registry.register_type(&key1),
-				key2: registry.register_type(&key2),
-				value: registry.register_type(&value),
-				key2_hasher,
-			},
-		}
+/// All metadata of the storage.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub struct StorageMetadata {
+	/// The common prefix used by all storage entries.
+	pub prefix: DecodeDifferent<&'static str, StringBuf>,
+	pub entries: DecodeDifferent<&'static [StorageEntryMetadata], Vec<StorageEntryMetadata>>,
+}
+
+/// Metadata prefixed by a u32 for reserved usage
+#[derive(Eq, Encode, PartialEq, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub struct RuntimeMetadataPrefixed(pub u32, pub RuntimeMetadata);
+
+/// Metadata of the extrinsic used by the runtime.
+#[derive(Eq, Encode, PartialEq, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub struct ExtrinsicMetadata {
+	/// Extrinsic version.
+	pub version: u8,
+	/// The signed extensions in the order they appear in the extrinsic.
+	pub signed_extensions: Vec<DecodeDifferentStr>,
+}
+
+/// The metadata of a runtime.
+/// The version ID encoded/decoded through
+/// the enum nature of `RuntimeMetadata`.
+#[derive(Eq, Encode, PartialEq, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub enum RuntimeMetadata {
+	/// Unused; enum filler.
+	V0(RuntimeMetadataDeprecated),
+	/// Version 1 for runtime metadata. No longer used.
+	V1(RuntimeMetadataDeprecated),
+	/// Version 2 for runtime metadata. No longer used.
+	V2(RuntimeMetadataDeprecated),
+	/// Version 3 for runtime metadata. No longer used.
+	V3(RuntimeMetadataDeprecated),
+	/// Version 4 for runtime metadata. No longer used.
+	V4(RuntimeMetadataDeprecated),
+	/// Version 5 for runtime metadata. No longer used.
+	V5(RuntimeMetadataDeprecated),
+	/// Version 6 for runtime metadata. No longer used.
+	V6(RuntimeMetadataDeprecated),
+	/// Version 7 for runtime metadata. No longer used.
+	V7(RuntimeMetadataDeprecated),
+	/// Version 8 for runtime metadata. No longer used.
+	V8(RuntimeMetadataDeprecated),
+	/// Version 9 for runtime metadata. No longer used.
+	V9(RuntimeMetadataDeprecated),
+	/// Version 10 for runtime metadata. No longer used.
+	V10(RuntimeMetadataDeprecated),
+	/// Version 11 for runtime metadata. No longer used.
+	V11(RuntimeMetadataDeprecated),
+	/// Version 12 for runtime metadata. No longer used.
+	V12(RuntimeMetadataDeprecated),
+	/// Version 13 for runtime metadata.
+	V13(RuntimeMetadataV13),
+}
+
+/// Enum that should fail.
+#[derive(Eq, PartialEq, Debug)]
+#[cfg_attr(feature = "std", derive(Serialize))]
+pub enum RuntimeMetadataDeprecated { }
+
+impl Encode for RuntimeMetadataDeprecated {
+	fn encode_to<W: Output + ?Sized>(&self, _dest: &mut W) {}
+}
+
+impl codec::EncodeLike for RuntimeMetadataDeprecated {}
+
+#[cfg(feature = "std")]
+impl Decode for RuntimeMetadataDeprecated {
+	fn decode<I: Input>(_input: &mut I) -> Result<Self, Error> {
+		Err("Decoding is not supported".into())
 	}
 }
 
-/// Metadata for all calls in a pallet
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct PalletCallMetadata<T: Form = MetaForm> {
-	/// The corresponding enum type for the pallet call.
-	pub ty: T::Type,
-	pub calls: Vec<FunctionMetadata<T>>,
+/// The metadata of a runtime.
+#[derive(Eq, Encode, PartialEq, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub struct RuntimeMetadataV13 {
+	/// Metadata of all the modules.
+	pub modules: DecodeDifferentArray<ModuleMetadata>,
+	/// Metadata of the extrinsic.
+	pub extrinsic: ExtrinsicMetadata,
 }
 
-impl IntoPortable for PalletCallMetadata {
-	type Output = PalletCallMetadata<PortableForm>;
+/// The latest version of the metadata.
+pub type RuntimeMetadataLastVersion = RuntimeMetadataV13;
 
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		PalletCallMetadata {
-			ty: registry.register_type(&self.ty),
-			calls: registry.map_into_portable(self.calls),
-		}
-	}
+/// All metadata about an runtime module.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+pub struct ModuleMetadata {
+	pub name: DecodeDifferentStr,
+	pub storage: Option<DecodeDifferent<FnEncode<StorageMetadata>, StorageMetadata>>,
+	pub calls: ODFnA<FunctionMetadata>,
+	pub event: ODFnA<EventMetadata>,
+	pub constants: DFnA<ModuleConstantMetadata>,
+	pub errors: DFnA<ErrorMetadata>,
+	/// Define the index of the module, this index will be used for the encoding of module event,
+	/// call and origin variants.
+	pub index: u8,
 }
 
-/// All the metadata about a function.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct FunctionMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub arguments: Vec<FunctionArgumentMetadata<T>>,
-	pub documentation: Vec<T::String>,
-}
-
-impl IntoPortable for FunctionMetadata {
-	type Output = FunctionMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		FunctionMetadata {
-			name: self.name.into_portable(registry),
-			arguments: registry.map_into_portable(self.arguments),
-			documentation: registry.map_into_portable(self.documentation),
-		}
-	}
-}
-
-/// All the metadata about a function argument.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct FunctionArgumentMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub ty: T::Type,
-}
-
-impl IntoPortable for FunctionArgumentMetadata {
-	type Output = FunctionArgumentMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		FunctionArgumentMetadata {
-			name: self.name.into_portable(registry),
-			ty: registry.register_type(&self.ty),
-		}
-	}
-}
-
-/// Metadata about the pallet event type.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct PalletEventMetadata<T: Form = MetaForm> {
-	pub ty: T::Type,
-}
-
-impl IntoPortable for PalletEventMetadata {
-	type Output = PalletEventMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		PalletEventMetadata {
-			ty: registry.register_type(&self.ty),
-		}
-	}
-}
-
-/// All the metadata about one pallet constant.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct PalletConstantMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub ty: T::Type,
-	pub value: ByteGetter,
-	pub documentation: Vec<T::String>,
-}
-
-impl IntoPortable for PalletConstantMetadata {
-	type Output = PalletConstantMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		PalletConstantMetadata {
-			name: self.name.into_portable(registry),
-			ty: registry.register_type(&self.ty),
-			value: self.value,
-			documentation: registry.map_into_portable(self.documentation),
-		}
-	}
-}
-
-/// Metadata about a pallet error.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize")))]
-pub struct PalletErrorMetadata<T: Form = MetaForm> {
-	/// The error type information.
-	pub ty: T::Type,
-}
-
-impl IntoPortable for PalletErrorMetadata {
-	type Output = PalletErrorMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		PalletErrorMetadata {
-			ty: registry.register_type(&self.ty),
-		}
-	}
-}
-
-/// A type specification.
-///
-/// This contains the actual type as well as an optional compile-time
-/// known displayed representation of the type. This is useful for cases
-/// where the type is used through a type alias in order to provide
-/// information about the alias name.
-///
-/// # Examples
-///
-/// Consider the following Rust function:
-/// ```no_compile
-/// fn is_sorted(input: &[i32], pred: Predicate) -> bool;
-/// ```
-/// In this above example `input` would have no displayable name,
-/// `pred`'s display name is `Predicate` and the display name of
-/// the return type is simply `bool`. Note that `Predicate` could
-/// simply be a type alias to `fn(i32, i32) -> Ordering`.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct TypeSpec<T: Form = MetaForm> {
-	/// The actual type.
-	pub ty: T::Type,
-	/// The compile-time known displayed representation of the type.
-	pub name: T::String,
-}
-
-impl IntoPortable for TypeSpec {
-	type Output = TypeSpec<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		TypeSpec {
-			ty: registry.register_type(&self.ty),
-			name: self.name.into_portable(registry),
-		}
-	}
-}
-
-impl TypeSpec {
-	/// Creates a new type specification without a display name.
-	pub fn new<T>(name: &'static str) -> Self
-	where
-		T: TypeInfo + 'static,
-	{
-		Self {
-			ty: meta_type::<T>(),
-			name,
-		}
-	}
-}
+type ODFnA<T> = Option<DFnA<T>>;
+type DFnA<T> = DecodeDifferent<FnEncode<&'static [T]>, Vec<T>>;
