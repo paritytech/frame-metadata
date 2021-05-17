@@ -296,7 +296,7 @@ impl IntoPortable for StorageEntryType {
 				hashers,
 				value,
 			} => StorageEntryType::NMap {
-				keys: registry.register_types(keys),
+				keys: registry.register_type(&keys),
 				hashers,
 				value: registry.register_type(&value),
 			},
