@@ -255,7 +255,7 @@ pub enum StorageEntryType<T: Form = MetaForm> {
 		key2_hasher: StorageHasher,
 	},
 	NMap {
-		keys: Vec<T::Type>,
+		keys: T::Type,
 		hashers: Vec<StorageHasher>,
 		value: T::Type,
 	},
