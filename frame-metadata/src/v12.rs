@@ -34,8 +34,6 @@ cfg_if::cfg_if! {
 	}
 }
 
-use core::marker::PhantomData;
-
 /// Current prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
@@ -226,17 +224,12 @@ pub struct ExtrinsicMetadata {
 /// The metadata of a runtime.
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct RuntimeMetadataV12<S = ()> {
+pub struct RuntimeMetadataV12 {
 	/// Metadata of all the modules.
 	pub modules: DecodeDifferentArray<ModuleMetadata>,
 	/// Metadata of the extrinsic.
 	pub extrinsic: ExtrinsicMetadata,
-	/// Marker for dummy type parameter required by v13 but not used here.
-	pub marker: PhantomData<S>,
 }
-
-/// The latest version of the metadata.
-pub type RuntimeMetadataLastVersion = RuntimeMetadataV12;
 
 /// All metadata about an runtime module.
 #[derive(Clone, PartialEq, Eq, Encode)]

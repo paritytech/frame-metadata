@@ -31,6 +31,23 @@ cfg_if::cfg_if! {
 /// Current prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
+/// Metadata about a function.
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+pub struct FunctionMetadata {
+	pub name: DecodeDifferentStr,
+	pub arguments: DecodeDifferentArray<FunctionArgumentMetadata>,
+	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
+}
+
+/// Metadata about a function argument.
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+pub struct FunctionArgumentMetadata {
+	pub name: DecodeDifferentStr,
+	pub ty: DecodeDifferentStr,
+}
+
 /// Metadata about an outer event.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize))]

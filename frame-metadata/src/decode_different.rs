@@ -20,8 +20,6 @@ use codec::{Encode, Output};
 cfg_if::cfg_if! {
 	if #[cfg(feature = "std")] {
 		use codec::{Decode, Error, Input};
-		use serde::Serialize;
-
 		pub type StringBuf = String;
 	} else {
 		extern crate alloc;
@@ -128,23 +126,6 @@ where
 pub type DecodeDifferentArray<B, O = B> = DecodeDifferent<&'static [B], Vec<O>>;
 
 pub type DecodeDifferentStr = DecodeDifferent<&'static str, StringBuf>;
-
-/// Metadata about a function.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
-pub struct FunctionMetadata {
-	pub name: DecodeDifferentStr,
-	pub arguments: DecodeDifferentArray<FunctionArgumentMetadata>,
-	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
-}
-
-/// Metadata about a function argument.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
-pub struct FunctionArgumentMetadata {
-	pub name: DecodeDifferentStr,
-	pub ty: DecodeDifferentStr,
-}
 
 /// Newtype wrapper for support encoding functions (actual the result of the function).
 #[derive(Clone, Eq)]
