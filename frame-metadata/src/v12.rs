@@ -15,13 +15,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Decodable variant of the RuntimeMetadata.
-
+use crate::decode_different::*;
 use codec::{Encode, Output};
 
 cfg_if::cfg_if! {
 	if #[cfg(feature = "std")] {
-		use codec::{Decode, Error, Input};
+		use codec::Decode;
 		use serde::Serialize;
 
 		type StringBuf = String;
@@ -35,108 +34,10 @@ cfg_if::cfg_if! {
 	}
 }
 
-use core::marker::PhantomData;
-
 /// Current prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
-/// A type that decodes to a different type than it encodes.
-/// The user needs to make sure that both types use the same encoding.
-///
-/// For example a `&'static [ &'static str ]` can be decoded to a `Vec<String>`.
-#[derive(Clone)]
-pub enum DecodeDifferent<B, O>
-where
-	B: 'static,
-	O: 'static,
-{
-	Encode(B),
-	Decoded(O),
-}
-
-impl<B, O> Encode for DecodeDifferent<B, O>
-where
-	B: Encode + 'static,
-	O: Encode + 'static,
-{
-	fn encode_to<W: Output + ?Sized>(&self, dest: &mut W) {
-		match self {
-			DecodeDifferent::Encode(b) => b.encode_to(dest),
-			DecodeDifferent::Decoded(o) => o.encode_to(dest),
-		}
-	}
-}
-
-impl<B, O> codec::EncodeLike for DecodeDifferent<B, O>
-where
-	B: Encode + 'static,
-	O: Encode + 'static,
-{
-}
-
-#[cfg(feature = "std")]
-impl<B, O> Decode for DecodeDifferent<B, O>
-where
-	B: 'static,
-	O: Decode + 'static,
-{
-	fn decode<I: Input>(input: &mut I) -> Result<Self, Error> {
-		<O>::decode(input).map(|val| DecodeDifferent::Decoded(val))
-	}
-}
-
-impl<B, O> PartialEq for DecodeDifferent<B, O>
-where
-	B: Encode + Eq + PartialEq + 'static,
-	O: Encode + Eq + PartialEq + 'static,
-{
-	fn eq(&self, other: &Self) -> bool {
-		self.encode() == other.encode()
-	}
-}
-
-impl<B, O> Eq for DecodeDifferent<B, O>
-where
-	B: Encode + Eq + PartialEq + 'static,
-	O: Encode + Eq + PartialEq + 'static,
-{
-}
-
-impl<B, O> core::fmt::Debug for DecodeDifferent<B, O>
-where
-	B: core::fmt::Debug + Eq + 'static,
-	O: core::fmt::Debug + Eq + 'static,
-{
-	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-		match self {
-			DecodeDifferent::Encode(b) => b.fmt(f),
-			DecodeDifferent::Decoded(o) => o.fmt(f),
-		}
-	}
-}
-
-#[cfg(feature = "std")]
-impl<B, O> serde::Serialize for DecodeDifferent<B, O>
-where
-	B: serde::Serialize + 'static,
-	O: serde::Serialize + 'static,
-{
-	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-	where
-		S: serde::Serializer,
-	{
-		match self {
-			DecodeDifferent::Encode(b) => b.serialize(serializer),
-			DecodeDifferent::Decoded(o) => o.serialize(serializer),
-		}
-	}
-}
-
-pub type DecodeDifferentArray<B, O = B> = DecodeDifferent<&'static [B], Vec<O>>;
-
-type DecodeDifferentStr = DecodeDifferent<&'static str, StringBuf>;
-
-/// All the metadata about a function.
+/// Metadata about a function.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct FunctionMetadata {
@@ -145,7 +46,7 @@ pub struct FunctionMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// All the metadata about a function argument.
+/// Metadata about a function argument.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct FunctionArgumentMetadata {
@@ -153,43 +54,7 @@ pub struct FunctionArgumentMetadata {
 	pub ty: DecodeDifferentStr,
 }
 
-/// Newtype wrapper for support encoding functions (actual the result of the function).
-#[derive(Clone, Eq)]
-pub struct FnEncode<E>(pub fn() -> E)
-where
-	E: Encode + 'static;
-
-impl<E: Encode> Encode for FnEncode<E> {
-	fn encode_to<W: Output + ?Sized>(&self, dest: &mut W) {
-		self.0().encode_to(dest);
-	}
-}
-
-impl<E: Encode> codec::EncodeLike for FnEncode<E> {}
-
-impl<E: Encode + PartialEq> PartialEq for FnEncode<E> {
-	fn eq(&self, other: &Self) -> bool {
-		self.0().eq(&other.0())
-	}
-}
-
-impl<E: Encode + core::fmt::Debug> core::fmt::Debug for FnEncode<E> {
-	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-		self.0().fmt(f)
-	}
-}
-
-#[cfg(feature = "std")]
-impl<E: Encode + serde::Serialize> serde::Serialize for FnEncode<E> {
-	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-	where
-		S: serde::Serializer,
-	{
-		self.0().serialize(serializer)
-	}
-}
-
-/// All the metadata about an outer event.
+/// Metadata about an outer event.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct OuterEventMetadata {
@@ -200,7 +65,7 @@ pub struct OuterEventMetadata {
 	>,
 }
 
-/// All the metadata about an event.
+/// Metadata about an event.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct EventMetadata {
@@ -209,7 +74,7 @@ pub struct EventMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// All the metadata about one storage entry.
+/// Metadata about one storage entry.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct StorageEntryMetadata {
@@ -220,7 +85,7 @@ pub struct StorageEntryMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// All the metadata about one module constant.
+/// Metadata about one module constant.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct ModuleConstantMetadata {
@@ -230,7 +95,7 @@ pub struct ModuleConstantMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// All the metadata about a module error.
+/// Metadata about a module error.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct ErrorMetadata {
@@ -238,7 +103,7 @@ pub struct ErrorMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// All the metadata about errors in a module.
+/// Metadata about errors in a module.
 pub trait ModuleErrorMetadata {
 	fn metadata() -> &'static [ErrorMetadata];
 }
@@ -359,17 +224,12 @@ pub struct ExtrinsicMetadata {
 /// The metadata of a runtime.
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct RuntimeMetadataV12<S = ()> {
+pub struct RuntimeMetadataV12 {
 	/// Metadata of all the modules.
 	pub modules: DecodeDifferentArray<ModuleMetadata>,
 	/// Metadata of the extrinsic.
 	pub extrinsic: ExtrinsicMetadata,
-	/// Marker for dummy type parameter required by v13 but not used here.
-	pub marker: PhantomData<S>,
 }
-
-/// The latest version of the metadata.
-pub type RuntimeMetadataLastVersion = RuntimeMetadataV12;
 
 /// All metadata about an runtime module.
 #[derive(Clone, PartialEq, Eq, Encode)]

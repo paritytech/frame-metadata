@@ -1,6 +1,6 @@
 [package]
 name = "frame-metadata"
-version = "12.0.0"
+version = "14.0.0"
 authors = ["Parity Technologies <admin@parity.io>"]
 edition = "2018"
 license = "Apache-2.0"
@@ -19,9 +19,10 @@ scale-info = { version = "0.6.0", default-features = false, optional = true, fea
 serde = { version = "1.0.101", optional = true, features = ["derive"] }
 
 [features]
-default = ["std", "v12"]
+default = ["std", "v14"]
 v12 = []
-v13 = ["scale-info"]
+v13 = []
+v14 = ["scale-info"]
 std = [
 	"codec/std",
 	"scale-info/std",
