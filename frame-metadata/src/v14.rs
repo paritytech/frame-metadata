@@ -477,7 +477,7 @@ impl IntoPortable for TypeSpec {
 }
 
 impl TypeSpec {
-	/// Creates a new type specification without a display name.
+	/// Creates a new type specification with a display name.
 	pub fn new<T>(name: &'static str) -> Self
 	where
 		T: TypeInfo + 'static,
