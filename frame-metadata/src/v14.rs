@@ -181,7 +181,7 @@ impl IntoPortable for PalletStorageMetadata {
 	}
 }
 
-/// All the metadata about one storage entry.
+/// Metadata about one storage entry.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
@@ -328,7 +328,7 @@ impl IntoPortable for PalletCallMetadata {
 	}
 }
 
-/// All the metadata about a function.
+/// Metadata about a function.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
@@ -353,7 +353,7 @@ impl IntoPortable for FunctionMetadata {
 	}
 }
 
-/// All the metadata about a function argument.
+/// Metadata about a function argument.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct FunctionArgumentMetadata<T: Form = MetaForm> {
@@ -389,7 +389,7 @@ impl IntoPortable for PalletEventMetadata {
 	}
 }
 
-/// All the metadata about one pallet constant.
+/// Metadata about one pallet constant.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(

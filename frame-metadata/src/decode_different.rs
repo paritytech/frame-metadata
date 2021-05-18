@@ -129,7 +129,7 @@ pub type DecodeDifferentArray<B, O = B> = DecodeDifferent<&'static [B], Vec<O>>;
 
 pub type DecodeDifferentStr = DecodeDifferent<&'static str, StringBuf>;
 
-/// All the metadata about a function.
+/// Metadata about a function.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize))]
 pub struct FunctionMetadata {
@@ -138,7 +138,7 @@ pub struct FunctionMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// All the metadata about a function argument.
+/// Metadata about a function argument.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize))]
 pub struct FunctionArgumentMetadata {

@@ -31,7 +31,7 @@ cfg_if::cfg_if! {
 /// Current prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
-/// All the metadata about an outer event.
+/// Metadata about an outer event.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize))]
 pub struct OuterEventMetadata {
@@ -42,7 +42,7 @@ pub struct OuterEventMetadata {
 	>,
 }
 
-/// All the metadata about an event.
+/// Metadata about an event.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize))]
 pub struct EventMetadata {
@@ -51,7 +51,7 @@ pub struct EventMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// All the metadata about one storage entry.
+/// Metadata about one storage entry.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize))]
 pub struct StorageEntryMetadata {
@@ -62,7 +62,7 @@ pub struct StorageEntryMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// All the metadata about a module constant.
+/// Metadata about a module constant.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize))]
 pub struct ModuleConstantMetadata {
@@ -72,7 +72,7 @@ pub struct ModuleConstantMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// All the metadata about a module error.
+/// Metadata about a module error.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize))]
 pub struct ErrorMetadata {
@@ -80,7 +80,7 @@ pub struct ErrorMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// All the metadata about errors in a module.
+/// Metadata about errors in a module.
 pub trait ModuleErrorMetadata {
 	fn metadata() -> &'static [ErrorMetadata];
 }
