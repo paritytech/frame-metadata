@@ -46,7 +46,9 @@ pub mod v13;
 #[cfg(feature = "v14")]
 pub mod v14;
 
-// Reexport all the types from the latest version
+// Reexport all the types from the latest version.
+//
+// When a new version becomes available, update this.
 #[cfg(feature = "v14")]
 pub use self::v14::*;
 
