@@ -46,6 +46,10 @@ pub mod v13;
 #[cfg(feature = "v14")]
 pub mod v14;
 
+// Reexport all the types from the latest version
+#[cfg(feature = "v14")]
+pub use self::v14::*;
+
 /// Metadata prefixed by a u32 for reserved usage
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
