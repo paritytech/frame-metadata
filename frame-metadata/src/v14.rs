@@ -27,7 +27,7 @@ use codec::Encode;
 use scale_info::prelude::vec::Vec;
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
-	meta_type, IntoPortable, PortableRegistry, Registry, TypeInfo,
+	IntoPortable, PortableRegistry, Registry,
 };
 
 /// Current prefix of metadata
@@ -431,60 +431,6 @@ impl IntoPortable for PalletErrorMetadata {
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		PalletErrorMetadata {
 			ty: registry.register_type(&self.ty),
-		}
-	}
-}
-
-/// A type specification.
-///
-/// This contains the actual type as well as an optional compile-time
-/// known displayed representation of the type. This is useful for cases
-/// where the type is used through a type alias in order to provide
-/// information about the alias name.
-///
-/// # Examples
-///
-/// Consider the following Rust function:
-/// ```no_compile
-/// fn is_sorted(input: &[i32], pred: Predicate) -> bool;
-/// ```
-/// In this above example `input` would have no displayable name,
-/// `pred`'s display name is `Predicate` and the display name of
-/// the return type is simply `bool`. Note that `Predicate` could
-/// simply be a type alias to `fn(i32, i32) -> Ordering`.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct TypeSpec<T: Form = MetaForm> {
-	/// The actual type.
-	pub ty: T::Type,
-	/// The compile-time known displayed representation of the type.
-	pub name: T::String,
-}
-
-impl IntoPortable for TypeSpec {
-	type Output = TypeSpec<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		TypeSpec {
-			ty: registry.register_type(&self.ty),
-			name: self.name.into_portable(registry),
-		}
-	}
-}
-
-impl TypeSpec {
-	/// Creates a new type specification with a display name.
-	pub fn new<T>(name: &'static str) -> Self
-	where
-		T: TypeInfo + 'static,
-	{
-		Self {
-			ty: meta_type::<T>(),
-			name,
 		}
 	}
 }
