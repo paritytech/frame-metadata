@@ -33,9 +33,6 @@ use scale_info::{
 /// Current prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
-/// Type alias placeholder for `ByteGetter` equivalent. todo: [AJ] figure out what to do here
-pub type ByteGetter = Vec<u8>;
-
 pub type RuntimeMetadataLastVersion = RuntimeMetadataV14;
 
 impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
@@ -45,8 +42,7 @@ impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 }
 
 /// The metadata of a runtime.
-// todo: [AJ] add back clone derive if required (requires PortableRegistry to implement clone)
-#[derive(PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct RuntimeMetadataV14 {
 	pub types: PortableRegistry,
@@ -192,7 +188,7 @@ pub struct StorageEntryMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub modifier: StorageEntryModifier,
 	pub ty: StorageEntryType<T>,
-	pub default: ByteGetter,
+	pub default: Vec<u8>,
 	pub documentation: Vec<T::String>,
 }
 
@@ -399,7 +395,7 @@ impl IntoPortable for PalletEventMetadata {
 pub struct PalletConstantMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub ty: T::Type,
-	pub value: ByteGetter,
+	pub value: Vec<u8>,
 	pub documentation: Vec<T::String>,
 }
 
