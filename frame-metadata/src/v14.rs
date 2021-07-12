@@ -240,8 +240,6 @@ pub enum StorageEntryType<T: Form = MetaForm> {
 		hasher: StorageHasher,
 		key: T::Type,
 		value: T::Type,
-		// is_linked flag previously, unused now to keep backwards compat
-		unused: bool,
 	},
 	DoubleMap {
 		hasher: StorageHasher,
