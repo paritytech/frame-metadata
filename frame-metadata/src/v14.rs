@@ -240,8 +240,6 @@ pub enum StorageEntryType<T: Form = MetaForm> {
 		hasher: StorageHasher,
 		key: T::Type,
 		value: T::Type,
-		// is_linked flag previously, unused now to keep backwards compat
-		unused: bool,
 	},
 	DoubleMap {
 		hasher: StorageHasher,
@@ -267,12 +265,10 @@ impl IntoPortable for StorageEntryType {
 				hasher,
 				key,
 				value,
-				unused,
 			} => StorageEntryType::Map {
 				hasher,
 				key: registry.register_type(&key),
 				value: registry.register_type(&value),
-				unused,
 			},
 			Self::DoubleMap {
 				hasher,
