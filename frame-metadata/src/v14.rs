@@ -103,8 +103,10 @@ impl IntoPortable for ExtrinsicMetadata {
 pub struct SignedExtensionMetadata<T: Form = MetaForm> {
 	/// The unique signed extension identifier, which may be different from the type name.
 	pub identifier: T::String,
-	/// The signed extensions in the order they appear in the extrinsic.
+	/// The type of the signed extension, with the data to be included in the extrinsic.
 	pub ty: T::Type,
+	/// The type of the additional signed data, with the data to be included in the signed payload
+	pub additional_signed: T::Type,
 }
 
 impl IntoPortable for SignedExtensionMetadata {
@@ -114,6 +116,7 @@ impl IntoPortable for SignedExtensionMetadata {
 		SignedExtensionMetadata {
 			identifier: self.identifier.into_portable(registry),
 			ty: registry.register_type(&self.ty),
+			additional_signed: registry.register_type(&self.additional_signed),
 		}
 	}
 }
@@ -189,7 +192,7 @@ pub struct StorageEntryMetadata<T: Form = MetaForm> {
 	pub modifier: StorageEntryModifier,
 	pub ty: StorageEntryType<T>,
 	pub default: Vec<u8>,
-	pub documentation: Vec<T::String>,
+	pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for StorageEntryMetadata {
@@ -201,7 +204,7 @@ impl IntoPortable for StorageEntryMetadata {
 			modifier: self.modifier,
 			ty: self.ty.into_portable(registry),
 			default: self.default,
-			documentation: registry.map_into_portable(self.documentation),
+			docs: registry.map_into_portable(self.docs),
 		}
 	}
 }
@@ -261,11 +264,7 @@ impl IntoPortable for StorageEntryType {
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		match self {
 			Self::Plain(plain) => StorageEntryType::Plain(registry.register_type(&plain)),
-			Self::Map {
-				hasher,
-				key,
-				value,
-			} => StorageEntryType::Map {
+			Self::Map { hasher, key, value } => StorageEntryType::Map {
 				hasher,
 				key: registry.register_type(&key),
 				value: registry.register_type(&value),
@@ -329,8 +328,8 @@ impl IntoPortable for PalletCallMetadata {
 )]
 pub struct FunctionMetadata<T: Form = MetaForm> {
 	pub name: T::String,
-	pub arguments: Vec<FunctionArgumentMetadata<T>>,
-	pub documentation: Vec<T::String>,
+	pub args: Vec<FunctionArgumentMetadata<T>>,
+	pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for FunctionMetadata {
@@ -339,8 +338,8 @@ impl IntoPortable for FunctionMetadata {
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		FunctionMetadata {
 			name: self.name.into_portable(registry),
-			arguments: registry.map_into_portable(self.arguments),
-			documentation: registry.map_into_portable(self.documentation),
+			args: registry.map_into_portable(self.args),
+			docs: registry.map_into_portable(self.docs),
 		}
 	}
 }
@@ -392,7 +391,7 @@ pub struct PalletConstantMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub ty: T::Type,
 	pub value: Vec<u8>,
-	pub documentation: Vec<T::String>,
+	pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for PalletConstantMetadata {
@@ -403,7 +402,7 @@ impl IntoPortable for PalletConstantMetadata {
 			name: self.name.into_portable(registry),
 			ty: registry.register_type(&self.ty),
 			value: self.value,
-			documentation: registry.map_into_portable(self.documentation),
+			docs: registry.map_into_portable(self.docs),
 		}
 	}
 }
