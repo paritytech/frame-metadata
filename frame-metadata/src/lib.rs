@@ -34,6 +34,8 @@ cfg_if::cfg_if! {
 
 use codec::{Encode, Output};
 
+pub mod convert;
+
 #[cfg(any(feature = "v12", feature = "v13"))]
 pub mod decode_different;
 
