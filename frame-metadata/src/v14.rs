@@ -264,11 +264,7 @@ impl IntoPortable for StorageEntryType {
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		match self {
 			Self::Plain(plain) => StorageEntryType::Plain(registry.register_type(&plain)),
-			Self::Map {
-				hasher,
-				key,
-				value,
-			} => StorageEntryType::Map {
+			Self::Map { hasher, key, value } => StorageEntryType::Map {
 				hasher,
 				key: registry.register_type(&key),
 				value: registry.register_type(&value),
