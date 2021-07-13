@@ -103,8 +103,10 @@ impl IntoPortable for ExtrinsicMetadata {
 pub struct SignedExtensionMetadata<T: Form = MetaForm> {
 	/// The unique signed extension identifier, which may be different from the type name.
 	pub identifier: T::String,
-	/// The signed extensions in the order they appear in the extrinsic.
+	/// The type of the signed extension, with the data to be included in the extrinsic.
 	pub ty: T::Type,
+	/// The type of the additional signed data, with the data to be included in the signed payload
+	pub additional_signed: T::Type,
 }
 
 impl IntoPortable for SignedExtensionMetadata {
@@ -114,6 +116,7 @@ impl IntoPortable for SignedExtensionMetadata {
 		SignedExtensionMetadata {
 			identifier: self.identifier.into_portable(registry),
 			ty: registry.register_type(&self.ty),
+			additional_signed: registry.register_type(&self.additional_signed),
 		}
 	}
 }
