@@ -27,7 +27,7 @@ use codec::Encode;
 use scale_info::prelude::vec::Vec;
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
-	IntoPortable, PortableRegistry, Registry,
+	IntoPortable, MetaType, PortableRegistry, Registry,
 };
 
 /// Current prefix of metadata
@@ -317,6 +317,12 @@ impl IntoPortable for PalletCallMetadata {
 	}
 }
 
+impl From<MetaType> for PalletCallMetadata {
+	fn from(ty: MetaType) -> Self {
+		Self { ty }
+	}
+}
+
 /// Metadata about the pallet event type.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
@@ -331,6 +337,12 @@ impl IntoPortable for PalletEventMetadata {
 		PalletEventMetadata {
 			ty: registry.register_type(&self.ty),
 		}
+	}
+}
+
+impl From<MetaType> for PalletEventMetadata {
+	fn from(ty: MetaType) -> Self {
+		Self { ty }
 	}
 }
 
@@ -379,3 +391,10 @@ impl IntoPortable for PalletErrorMetadata {
 		}
 	}
 }
+
+impl From<MetaType> for PalletErrorMetadata {
+	fn from(ty: MetaType) -> Self {
+		Self { ty }
+	}
+}
+
