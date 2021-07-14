@@ -397,4 +397,3 @@ impl From<MetaType> for PalletErrorMetadata {
 		Self { ty }
 	}
 }
-
