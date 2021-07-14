@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use core::convert::{TryFrom, TryInto};
+use core::convert::{TryFrom};
 use crate::decode_different::{DecodeDifferent, DecodeDifferentArray};
 use crate::{v13, PalletMetadata, PalletStorageMetadata, ExtrinsicMetadata};
 use crate::v14;
@@ -38,28 +38,47 @@ struct Converter {
 
 impl Converter {
     fn convert(&self) -> Result<v13::RuntimeMetadataV13> {
-        let modules = value.pallets
+        let modules = self.metadata.pallets
             .iter()
             .map(TryFrom::try_from)
             .collect::<Result<Vec<_>>>()?;
-        let extrinsic = value.extrinsic.try_into()?;
+        let extrinsic = self.convert_extrinsic()?;
         Ok(v13::RuntimeMetadataV13 {
             modules: DecodeDifferentArray::Decoded(modules),
             extrinsic,
         })
     }
 
-    fn convert_extrinsic(&self, extrinsic: &v14::ExtrinsicMetadata) -> Result<v13::ExtrinsicMetadata> {
-        todo!()
+    fn convert_extrinsic(&self) -> Result<v13::ExtrinsicMetadata> {
+        let extrinsic = &self.metadata.extrinsic;
+        let signed_extensions = extrinsic.signed_extensions
+            .iter()
+            .map(|se| DecodeDifferent::Decoded(se.identifier))
+            .collect::<Vec<_>>();
+        Ok(v13::ExtrinsicMetadata {
+            version: extrinsic.version,
+            signed_extensions
+        })
     }
 
     fn convert_pallet(&self, pallet: v14::PalletMetadata) -> Result<v13::ModuleMetadata> {
         let name = pallet.name;
-        let storage = pallet.storage
-            .map(|s| self.convert_pallet_storage(s)).transpose()?;
-        let calls = pallet.calls.map(TryFrom::try_from).transpose()?;
-        let event = pallet.event.map(TryFrom::try_from).transpose()?;
-        let constants = pallet.constants.map(TryFrom::try_from).transpose()?;
+        let storage = pallet
+            .storage
+            .map(|storage| self.convert_pallet_storage(storage))
+            .transpose()?;
+        let calls = pallet
+            .calls
+            .map(|call| self.convert_call(call))
+            .transpose()?;
+        let event = pallet
+            .event
+            .map(|event| self.convert_event(event))
+            .transpose()?;
+        let constants = pallet
+            .constants
+            .map(|constant| self.convert_constant(constant))
+            .transpose()?;
         let errors = pallet.error.map(TryFrom::try_from).transpose()?;
         Ok(v13::ModuleMetadata {
             name: DecodeDifferent::Decoded(name),
@@ -68,8 +87,12 @@ impl Converter {
             event,
             constants,
             errors,
-            index: value.index,
+            index: self.index,
         })
+    }
+
+    fn convert_call(&self, storage: v14::PalletCallMetadata) -> Result<v13::StorageMetadata> {
+        todo!()
     }
 
     fn convert_pallet_storage(&self, storage: v14::PalletStorageMetadata) -> Result<v13::StorageMetadata> {
