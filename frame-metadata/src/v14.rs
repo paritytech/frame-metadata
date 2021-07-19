@@ -24,7 +24,7 @@ cfg_if::cfg_if! {
 
 use super::RuntimeMetadataPrefixed;
 use codec::Encode;
-use scale_info::prelude::{string::String, vec::Vec};
+use scale_info::prelude::vec::Vec;
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
 	IntoPortable, MetaType, PortableRegistry, Registry,
@@ -244,15 +244,15 @@ impl StorageEntryMetadata<MetaForm> {
 	#[cfg(not(feature = "docs"))]
 	/// Docs feature is not enabled so this is a no-op.
 	#[inline]
-	pub fn with_docs(mut self, _docs: &[&'static str]) -> Self {
+	pub fn with_docs(self, _docs: &[&'static str]) -> Self {
 		self
 	}
 }
 
 impl StorageEntryMetadata<PortableForm> {
 	/// Get the documentation.
-	pub fn docs(&self) -> &[String] {
-		&self.docs
+	pub fn docs(&self) -> &[&str] {
+		self.docs.as_slice()
 	}
 }
 
@@ -413,14 +413,14 @@ impl PalletConstantMetadata {
 	#[cfg(not(feature = "docs"))]
 	/// Docs feature is not enabled so this is a no-op.
 	#[inline]
-	pub fn with_docs(mut self, _docs: &[&'static str]) -> Self {
+	pub fn with_docs(self, _docs: &[&'static str]) -> Self {
 		self
 	}
 }
 
 impl PalletConstantMetadata<PortableForm> {
 	/// Get the documentation.
-	pub fn docs(&self) -> &[String] {
+	pub fn docs(&self) -> &[&str] {
 		&self.docs
 	}
 }
