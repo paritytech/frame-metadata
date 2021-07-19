@@ -24,7 +24,10 @@ cfg_if::cfg_if! {
 
 use super::RuntimeMetadataPrefixed;
 use codec::Encode;
-use scale_info::prelude::vec::Vec;
+use scale_info::prelude::{
+	string::String,
+	vec::Vec,
+};
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
 	IntoPortable, MetaType, PortableRegistry, Registry,
