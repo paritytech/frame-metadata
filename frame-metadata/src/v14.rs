@@ -200,7 +200,7 @@ pub struct StorageEntryMetadata<T: Form = MetaForm> {
 	pub modifier: StorageEntryModifier,
 	pub ty: StorageEntryType<T>,
 	pub default: Vec<u8>,
-	pub docs: Vec<T::String>,
+	docs: Vec<T::String>,
 }
 
 impl IntoPortable for StorageEntryMetadata {
@@ -214,6 +214,45 @@ impl IntoPortable for StorageEntryMetadata {
 			default: self.default,
 			docs: registry.map_into_portable(self.docs),
 		}
+	}
+}
+
+impl StorageEntryMetadata<MetaForm> {
+	/// Create a new [`StorageEntryMetadata`].
+	pub fn new(
+		name: &'static str,
+		modifier: StorageEntryModifier,
+		ty: StorageEntryType<MetaForm>,
+		default: Vec<u8>,
+	) -> Self {
+		StorageEntryMetadata {
+			name,
+			modifier,
+			ty,
+			default,
+			docs: Vec::new(),
+		}
+	}
+
+	#[cfg(feature = "docs")]
+	/// Set the documentation.
+	pub fn with_docs(mut self, docs: &[&'static str]) -> Self {
+		self.docs = docs.to_vec();
+		self
+	}
+
+	#[cfg(not(feature = "docs"))]
+	/// Docs feature is not enabled so this is a no-op.
+	#[inline]
+	pub fn with_docs(mut self, docs: &[&'static str]) -> Self {
+		self
+	}
+}
+
+impl StorageEntryMetadata<PortableForm> {
+	/// Get the documentation.
+	pub fn docs(&self) -> &[String] {
+		&self.docs
 	}
 }
 
@@ -338,7 +377,7 @@ pub struct PalletConstantMetadata<T: Form = MetaForm> {
 	pub name: T::String,
 	pub ty: T::Type,
 	pub value: Vec<u8>,
-	pub docs: Vec<T::String>,
+	docs: Vec<T::String>,
 }
 
 impl IntoPortable for PalletConstantMetadata {
@@ -351,6 +390,38 @@ impl IntoPortable for PalletConstantMetadata {
 			value: self.value,
 			docs: registry.map_into_portable(self.docs),
 		}
+	}
+}
+
+impl PalletConstantMetadata {
+	pub fn new(name: &'static str, ty: MetaType, value: Vec<u8>) -> Self {
+		Self {
+			name,
+			ty,
+			value,
+			docs: Vec::new(),
+		}
+	}
+
+	#[cfg(feature = "docs")]
+	/// Set the documentation.
+	pub fn with_docs(mut self, docs: &[&'static str]) -> Self {
+		self.docs = docs.to_vec();
+		self
+	}
+
+	#[cfg(not(feature = "docs"))]
+	/// Docs feature is not enabled so this is a no-op.
+	#[inline]
+	pub fn with_docs(mut self, docs: &[&'static str]) -> Self {
+		self
+	}
+}
+
+impl PalletConstantMetadata<PortableForm> {
+	/// Get the documentation.
+	pub fn docs(&self) -> &[String] {
+		&self.docs
 	}
 }
 

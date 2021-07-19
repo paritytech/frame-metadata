@@ -24,11 +24,13 @@ v8  = []
 v9  = []
 v10 = []
 v11 = []
+docs = ["scale-info/docs"]
 v12 = []
 v13 = []
 legacy = ["v13", "v12", "v11", "v10", "v9", "v8"]
 v14 = ["scale-info"]
 std = [
+	"docs",
 	"codec/std",
 	"scale-info/std",
 	"scale-info/serde",
