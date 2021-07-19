@@ -121,6 +121,6 @@ jobs:
         with:
           command:                 check
           toolchain:               stable
-          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --all-features
+          args:                    --manifest-path ./frame-metadata/Cargo.toml --all-features
 
 
