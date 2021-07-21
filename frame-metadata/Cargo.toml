@@ -25,7 +25,6 @@ v12 = []
 v13 = []
 v14 = ["scale-info"]
 std = [
-	"docs",
 	"codec/std",
 	"scale-info/std",
 	"scale-info/serde",
