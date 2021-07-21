@@ -440,7 +440,7 @@ impl PalletConstantMetadata {
 	}
 }
 
-impl PalletConstantMetadata<T>
+impl<T> PalletConstantMetadata<T>
 where
 	T: Form,
 {
