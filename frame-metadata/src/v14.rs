@@ -234,8 +234,8 @@ impl StorageEntryMetadata<MetaForm> {
 	}
 
 	#[cfg(not(feature = "docs"))]
-	/// Docs feature is not enabled so this is a no-op.
 	#[inline]
+	/// Docs feature is not enabled so this is a no-op.
 	pub fn with_docs(self, _docs: &[&'static str]) -> Self {
 		self
 	}
@@ -433,8 +433,8 @@ impl PalletConstantMetadata {
 	}
 
 	#[cfg(not(feature = "docs"))]
-	/// Docs feature is not enabled so this is a no-op.
 	#[inline]
+	/// Docs feature is not enabled so this is a no-op.
 	pub fn with_docs(self, _docs: &[&'static str]) -> Self {
 		self
 	}
