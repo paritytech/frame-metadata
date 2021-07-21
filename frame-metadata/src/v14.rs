@@ -241,9 +241,12 @@ impl StorageEntryMetadata<MetaForm> {
 	}
 }
 
-impl StorageEntryMetadata<PortableForm> {
+impl<T> StorageEntryMetadata<T>
+where
+	T: Form
+{
 	/// Get the documentation.
-	pub fn docs(&self) -> &[<PortableForm as Form>::String] {
+	pub fn docs(&self) -> &[T::String] {
 		self.docs.as_slice()
 	}
 }
@@ -437,9 +440,12 @@ impl PalletConstantMetadata {
 	}
 }
 
-impl PalletConstantMetadata<PortableForm> {
+impl PalletConstantMetadata<T>
+where
+	T: Form
+{
 	/// Get the documentation.
-	pub fn docs(&self) -> &[<PortableForm as Form>::String] {
+	pub fn docs(&self) -> &[T::String] {
 		self.docs.as_slice()
 	}
 }
