@@ -34,6 +34,7 @@ cfg_if::cfg_if! {
 
 use codec::{Encode, Output};
 
+#[cfg(feature = "convert")]
 pub mod convert;
 
 #[cfg(any(feature = "v12", feature = "v13"))]
