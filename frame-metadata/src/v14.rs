@@ -27,7 +27,7 @@ use codec::Encode;
 use scale_info::prelude::vec::Vec;
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
-	IntoPortable, PortableRegistry, Registry,
+	IntoPortable, MetaType, PortableRegistry, Registry,
 };
 
 /// Current prefix of metadata
@@ -305,7 +305,6 @@ impl IntoPortable for StorageEntryType {
 pub struct PalletCallMetadata<T: Form = MetaForm> {
 	/// The corresponding enum type for the pallet call.
 	pub ty: T::Type,
-	pub calls: Vec<FunctionMetadata<T>>,
 }
 
 impl IntoPortable for PalletCallMetadata {
@@ -314,52 +313,13 @@ impl IntoPortable for PalletCallMetadata {
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		PalletCallMetadata {
 			ty: registry.register_type(&self.ty),
-			calls: registry.map_into_portable(self.calls),
 		}
 	}
 }
 
-/// Metadata about a function.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-#[cfg_attr(
-	feature = "std",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct FunctionMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub args: Vec<FunctionArgumentMetadata<T>>,
-	pub docs: Vec<T::String>,
-}
-
-impl IntoPortable for FunctionMetadata {
-	type Output = FunctionMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		FunctionMetadata {
-			name: self.name.into_portable(registry),
-			args: registry.map_into_portable(self.args),
-			docs: registry.map_into_portable(self.docs),
-		}
-	}
-}
-
-/// Metadata about a function argument.
-#[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct FunctionArgumentMetadata<T: Form = MetaForm> {
-	pub name: T::String,
-	pub ty: T::Type,
-}
-
-impl IntoPortable for FunctionArgumentMetadata {
-	type Output = FunctionArgumentMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		FunctionArgumentMetadata {
-			name: self.name.into_portable(registry),
-			ty: registry.register_type(&self.ty),
-		}
+impl From<MetaType> for PalletCallMetadata {
+	fn from(ty: MetaType) -> Self {
+		Self { ty }
 	}
 }
 
@@ -377,6 +337,12 @@ impl IntoPortable for PalletEventMetadata {
 		PalletEventMetadata {
 			ty: registry.register_type(&self.ty),
 		}
+	}
+}
+
+impl From<MetaType> for PalletEventMetadata {
+	fn from(ty: MetaType) -> Self {
+		Self { ty }
 	}
 }
 
@@ -423,5 +389,11 @@ impl IntoPortable for PalletErrorMetadata {
 		PalletErrorMetadata {
 			ty: registry.register_type(&self.ty),
 		}
+	}
+}
+
+impl From<MetaType> for PalletErrorMetadata {
+	fn from(ty: MetaType) -> Self {
+		Self { ty }
 	}
 }
