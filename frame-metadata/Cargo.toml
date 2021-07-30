@@ -5,8 +5,8 @@ authors = ["Parity Technologies <admin@parity.io>"]
 edition = "2018"
 license = "Apache-2.0"
 homepage = "https://substrate.dev"
-repository = "https://github.com/paritytech/substrate/"
-description = "Decodable variant of the RuntimeMetadata."
+repository = "https://github.com/paritytech/frame-metadata/"
+description = "Metadata types for Substrate runtimes"
 readme = "README.md"
 
 [package.metadata.docs.rs]
