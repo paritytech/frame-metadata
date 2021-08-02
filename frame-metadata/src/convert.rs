@@ -74,21 +74,33 @@ impl Converter {
         let name = pallet.name.clone();
         let storage = pallet
             .storage
-            .map(|storage| self.convert_pallet_storage(storage))
+            .map(|storage| {
+                let converted = self.convert_pallet_storage(storage)?;
+                Ok(DecodeDifferent::Decoded(converted))
+            })
             .transpose()?;
         let calls = pallet
             .calls
-            .map(|call| self.convert_call(call))
+            .map(|call| {
+                let converted = self.convert_call(call)?;
+                Ok(DecodeDifferent::Decoded(converted))
+            })
             .transpose()?;
         let event = pallet
             .event
-            .map(|event| self.convert_event(event))
+            .map(|event| {
+                let converted = self.convert_event(event)?;
+                Ok(DecodeDifferent::Decoded(converted))
+            })
             .transpose()?;
         let constants = pallet
             .constants
             .iter()
-            .map(|constant| self.convert_constant(constant))
-            .transpose()?;
+            .map(|constant| {
+                let converted = self.convert_constant(constant)?;
+                Ok(DecodeDifferent::Decoded(converted))
+            })
+            .collect::<Result<_>>()?;
         let errors = pallet.error.map(TryFrom::try_from).transpose()?;
         Ok(v13::ModuleMetadata {
             name: DecodeDifferent::Decoded(name),
