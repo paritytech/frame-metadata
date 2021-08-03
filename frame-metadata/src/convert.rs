@@ -25,8 +25,7 @@ use core::{
     convert::TryFrom,
 };
 use crate::decode_different::{DecodeDifferent, DecodeDifferentArray};
-use crate::{v13, PalletMetadata, PalletStorageMetadata, ExtrinsicMetadata};
-use crate::v14;
+use crate::{v13, v14};
 use scale_info::form::PortableForm;
 
 pub type MetadataConversionError = String;
@@ -74,58 +73,63 @@ impl Converter {
         let name = pallet.name.clone();
         let storage = pallet
             .storage
-            .map(|storage| {
-                let converted = self.convert_pallet_storage(storage)?;
-                Ok(DecodeDifferent::Decoded(converted))
-            })
+            .as_ref()
+            .map(|storage|
+                self.convert_pallet_storage(storage).map(DecodeDifferent::Decoded)
+            )
             .transpose()?;
         let calls = pallet
             .calls
-            .map(|call| {
-                let converted = self.convert_call(call)?;
-                Ok(DecodeDifferent::Decoded(converted))
-            })
+            .as_ref()
+            .map(|call|
+                self.convert_call(call).map(DecodeDifferent::Decoded)
+            )
             .transpose()?;
         let event = pallet
             .event
+            .as_ref()
             .map(|event| {
-                let converted = self.convert_event(event)?;
-                Ok(DecodeDifferent::Decoded(converted))
+                self.convert_event(event).map(DecodeDifferent::Decoded)
             })
             .transpose()?;
         let constants = pallet
             .constants
             .iter()
-            .map(|constant| {
-                let converted = self.convert_constant(constant)?;
-                Ok(DecodeDifferent::Decoded(converted))
-            })
-            .collect::<Result<_>>()?;
-        let errors = pallet.error.map(TryFrom::try_from).transpose()?;
+            .map(|constant| self.convert_constant(constant))
+            .collect::<Result<Vec<_>>>()?;
+        let errors = pallet
+            .error
+            .as_ref()
+            .map(|err| self.convert_error(err))
+            .unwrap_or_else(|| Ok(Vec::new()))?;
         Ok(v13::ModuleMetadata {
             name: DecodeDifferent::Decoded(name),
             storage,
             calls,
             event,
-            constants,
-            errors,
-            index: self.index,
+            constants: DecodeDifferent::Decoded(constants),
+            errors: DecodeDifferent::Decoded(errors),
+            index: pallet.index,
         })
     }
 
-    fn convert_pallet_storage(&self, storage: v14::PalletStorageMetadata<PortableForm>) -> Result<v13::StorageMetadata> {
+    fn convert_pallet_storage(&self, storage: &v14::PalletStorageMetadata<PortableForm>) -> Result<v13::StorageMetadata> {
         todo!()
     }
 
-    fn convert_call(&self, call: v14::PalletCallMetadata<PortableForm>) -> Result<v13::StorageMetadata> {
+    fn convert_call(&self, call: &v14::PalletCallMetadata<PortableForm>) -> Result<Vec<v13::FunctionMetadata>> {
         todo!()
     }
 
-    fn convert_event(&self, event: v14::PalletEventMetadata<PortableForm>) -> Result<v13::EventMetadata> {
+    fn convert_event(&self, event: &v14::PalletEventMetadata<PortableForm>) -> Result<Vec<v13::EventMetadata>> {
         todo!()
     }
 
     fn convert_constant(&self, constant: &v14::PalletConstantMetadata<PortableForm>) -> Result<v13::ModuleConstantMetadata> {
+        todo!()
+    }
+
+    fn convert_error(&self, error: &v14::PalletErrorMetadata<PortableForm>) -> Result<Vec<v13::ErrorMetadata>> {
         todo!()
     }
 }
