@@ -240,8 +240,11 @@ pub enum StorageHasher {
 pub enum StorageEntryType<T: Form = MetaForm> {
 	Plain(T::Type),
 	Map {
+		/// One or more hashers, should be one hasher per key element.
 		hashers: Vec<StorageHasher>,
+		/// The type of the key, can be a tuple with elements for each of the hashers.
 		key: T::Type,
+		/// The type of the value.
 		value: T::Type,
 	},
 }
