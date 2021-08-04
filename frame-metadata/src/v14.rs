@@ -244,13 +244,6 @@ pub enum StorageEntryType<T: Form = MetaForm> {
 		key: T::Type,
 		value: T::Type,
 	},
-	DoubleMap {
-		hasher: StorageHasher,
-		key1: T::Type,
-		key2: T::Type,
-		value: T::Type,
-		key2_hasher: StorageHasher,
-	},
 }
 
 impl IntoPortable for StorageEntryType {
@@ -267,19 +260,6 @@ impl IntoPortable for StorageEntryType {
 				hashers,
 				key: registry.register_type(&key),
 				value: registry.register_type(&value),
-			},
-			Self::DoubleMap {
-				hasher,
-				key1,
-				key2,
-				value,
-				key2_hasher,
-			} => StorageEntryType::DoubleMap {
-				hasher,
-				key1: registry.register_type(&key1),
-				key2: registry.register_type(&key2),
-				value: registry.register_type(&value),
-				key2_hasher,
 			},
 		}
 	}
