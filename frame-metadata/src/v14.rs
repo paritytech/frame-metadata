@@ -240,20 +240,11 @@ pub enum StorageHasher {
 pub enum StorageEntryType<T: Form = MetaForm> {
 	Plain(T::Type),
 	Map {
-		hasher: StorageHasher,
-		key: T::Type,
-		value: T::Type,
-	},
-	DoubleMap {
-		hasher: StorageHasher,
-		key1: T::Type,
-		key2: T::Type,
-		value: T::Type,
-		key2_hasher: StorageHasher,
-	},
-	NMap {
-		keys: T::Type,
+		/// One or more hashers, should be one hasher per key element.
 		hashers: Vec<StorageHasher>,
+		/// The type of the key, can be a tuple with elements for each of the hashers.
+		key: T::Type,
+		/// The type of the value.
 		value: T::Type,
 	},
 }
@@ -264,31 +255,13 @@ impl IntoPortable for StorageEntryType {
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		match self {
 			Self::Plain(plain) => StorageEntryType::Plain(registry.register_type(&plain)),
-			Self::Map { hasher, key, value } => StorageEntryType::Map {
-				hasher,
+			Self::Map {
+				hashers,
+				key,
+				value,
+			} => StorageEntryType::Map {
+				hashers,
 				key: registry.register_type(&key),
-				value: registry.register_type(&value),
-			},
-			Self::DoubleMap {
-				hasher,
-				key1,
-				key2,
-				value,
-				key2_hasher,
-			} => StorageEntryType::DoubleMap {
-				hasher,
-				key1: registry.register_type(&key1),
-				key2: registry.register_type(&key2),
-				value: registry.register_type(&value),
-				key2_hasher,
-			},
-			StorageEntryType::NMap {
-				keys,
-				hashers,
-				value,
-			} => StorageEntryType::NMap {
-				keys: registry.register_type(&keys),
-				hashers,
 				value: registry.register_type(&value),
 			},
 		}
