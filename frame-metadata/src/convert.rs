@@ -276,7 +276,12 @@ impl Converter {
 		&self,
 		constant: &v14::PalletConstantMetadata<PortableForm>,
 	) -> Result<v13::ModuleConstantMetadata> {
-		todo!()
+		Ok(v13::ModuleConstantMetadata {
+            name: DecodeDifferentStr::Decoded(constant.name.clone()),
+            ty: DecodeDifferentStr::Decoded(self.get_type_ident(&constant.ty)?),
+            value: DecodeDifferent::Decoded(constant.value.clone()),
+            documentation: DecodeDifferentArray::Decoded(constant.docs.to_vec())
+        })
 	}
 
 	fn convert_error(
