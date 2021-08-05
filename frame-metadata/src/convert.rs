@@ -252,7 +252,8 @@ impl Converter {
 		let ty = self.resolve_type(&event.ty)?;
 
 		if let TypeDef::Variant(event) = ty.type_def() {
-			event.variants()
+			event
+				.variants()
 				.iter()
 				.map(|variant| {
 					let arguments = variant
@@ -277,31 +278,32 @@ impl Converter {
 		constant: &v14::PalletConstantMetadata<PortableForm>,
 	) -> Result<v13::ModuleConstantMetadata> {
 		Ok(v13::ModuleConstantMetadata {
-            name: DecodeDifferentStr::Decoded(constant.name.clone()),
-            ty: DecodeDifferentStr::Decoded(self.get_type_ident(&constant.ty)?),
-            value: DecodeDifferent::Decoded(constant.value.clone()),
-            documentation: DecodeDifferentArray::Decoded(constant.docs.to_vec())
-        })
+			name: DecodeDifferentStr::Decoded(constant.name.clone()),
+			ty: DecodeDifferentStr::Decoded(self.get_type_ident(&constant.ty)?),
+			value: DecodeDifferent::Decoded(constant.value.clone()),
+			documentation: DecodeDifferentArray::Decoded(constant.docs.to_vec()),
+		})
 	}
 
 	fn convert_error(
 		&self,
 		error: &v14::PalletErrorMetadata<PortableForm>,
 	) -> Result<Vec<v13::ErrorMetadata>> {
-        let ty = self.resolve_type(&error.ty)?;
-        if let TypeDef::Variant(error) = ty.type_def() {
-            error.variants()
-                .iter()
-                .map(|variant| {
-                    Ok(v13::ErrorMetadata {
-                        name: DecodeDifferentStr::Decoded(variant.name().clone()),
-                        documentation: DecodeDifferentArray::Decoded(variant.docs().to_vec())
-                    })
-                })
-                .collect()
-        } else {
-            Err("Call type should be an enum/variant type".into())
-        }
+		let ty = self.resolve_type(&error.ty)?;
+		if let TypeDef::Variant(error) = ty.type_def() {
+			error
+				.variants()
+				.iter()
+				.map(|variant| {
+					Ok(v13::ErrorMetadata {
+						name: DecodeDifferentStr::Decoded(variant.name().clone()),
+						documentation: DecodeDifferentArray::Decoded(variant.docs().to_vec()),
+					})
+				})
+				.collect()
+		} else {
+			Err("Call type should be an enum/variant type".into())
+		}
 	}
 
 	fn resolve_type(&self, ty: &<PortableForm as Form>::Type) -> Result<&Type<PortableForm>> {
@@ -318,9 +320,22 @@ impl Converter {
 				.path()
 				.ident()
 				.ok_or_else(|| format!("Type should have an indent")),
-			TypeDef::Sequence(_) => todo!(),
-			TypeDef::Array(_) => todo!(),
-			TypeDef::Tuple(_) => todo!(),
+			TypeDef::Sequence(seq) => {
+				Ok(format!("Vec<{}>", self.get_type_ident(seq.type_param())?))
+			}
+			TypeDef::Array(arr) => Ok(format!(
+				"[{}; {}]",
+				self.get_type_ident(arr.type_param())?,
+				arr.len()
+			)),
+			TypeDef::Tuple(tuple) => {
+				let elements = tuple
+					.fields()
+					.iter()
+					.map(|f| self.get_type_ident(f))
+					.collect::<Result<Vec<_>>>()?;
+				Ok(format!("({})", elements.join(", ")))
+			}
 			TypeDef::Primitive(primitive) => {
 				let type_str = match primitive {
 					TypeDefPrimitive::Bool => "bool",
@@ -341,8 +356,15 @@ impl Converter {
 				};
 				Ok(type_str.to_string())
 			}
-			TypeDef::Compact(_) => todo!(),
-			TypeDef::BitSequence(_) => todo!(),
+			TypeDef::Compact(compact) => Ok(format!(
+				"Compact<{}>",
+				self.get_type_ident(compact.type_param())?
+			)),
+			TypeDef::BitSequence(bitvec) => Ok(format!(
+				"BitVec<{}, {}>",
+				self.get_type_ident(bitvec.bit_order_type())?,
+				self.get_type_ident(bitvec.bit_store_type())?
+			)),
 		}
 	}
 }
