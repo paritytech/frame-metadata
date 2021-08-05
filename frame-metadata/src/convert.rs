@@ -15,20 +15,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(not(feature = "std"))]
-use alloc::{
-    string::String,
-    vec::Vec,
-    format
-};
-
 use core::{
     convert::TryFrom,
 };
 use crate::decode_different::{DecodeDifferent, DecodeDifferentArray, DecodeDifferentStr};
 use crate::{v13, v14, StorageHasher};
-use scale_info::form::{Form, PortableForm};
-use scale_info::{TypeDef, TypeDefPrimitive, Type};
+use scale_info::{
+    form::{Form, PortableForm},
+    TypeDef, TypeDefPrimitive, Type
+};
 
 pub type MetadataConversionError = String;
 pub type Result<T> = core::result::Result<T, MetadataConversionError>;
@@ -63,7 +58,7 @@ impl Converter {
         let extrinsic = &self.metadata.extrinsic;
         let signed_extensions = extrinsic.signed_extensions
             .iter()
-            .map(|se| DecodeDifferent::Decoded(se.identifier))
+            .map(|se| DecodeDifferent::Decoded(se.identifier.clone()))
             .collect::<Vec<_>>();
         Ok(v13::ExtrinsicMetadata {
             version: extrinsic.version,
@@ -124,53 +119,8 @@ impl Converter {
                     v14::StorageEntryModifier::Optional => v13::StorageEntryModifier::Optional,
                     v14::StorageEntryModifier::Default => v13::StorageEntryModifier::Default,
                 };
-                let convert_hasher = |hasher| {
-                    match hasher {
-                        v14::StorageHasher::Blake2_128 => v13::StorageHasher::Blake2_128,
-                        v14::StorageHasher::Blake2_256 => v13::StorageHasher::Blake2_256,
-                        v14::StorageHasher::Blake2_128Concat => v13::StorageHasher::Blake2_128Concat,
-                        v14::StorageHasher::Twox128 => v13::StorageHasher::Twox128,
-                        v14::StorageHasher::Twox256 => v13::StorageHasher::Twox256,
-                        v14::StorageHasher::Twox64Concat => v13::StorageHasher::Twox64Concat,
-                        v14::StorageHasher::Identity => v13::StorageHasher::Identity,
-                    }
-                };
-                let ty = match entry.ty {
-                    v14::StorageEntryType::Plain(key) =>
-                        v13::StorageEntryType::Plain(DecodeDifferent::Decoded(self.get_type_ident(key)?)),
-                    v14::StorageEntryType::Map { hasher, key, value } => {
-                        v13::StorageEntryType::Map {
-                            hasher: convert_hasher(hasher),
-                            key: self.get_type_ident(key)?,
-                            value: self.get_type_ident(value)?,
-                            unused: false
-                        }
-                    }
-                    v14::StorageEntryType::DoubleMap { hasher, key1, key2, value, key2_hasher } => {
-                        v13::StorageEntryType::DoubleMap {
-                            hasher: convert_hasher(hasher),
-                            key1: self.get_type_ident(key1)?,
-                            key2: self.get_type_ident(key2)?,
-                            value: self.get_type_ident(value)?,
-                            key2_hasher: convert_hasher(key2_hasher),
-                        }
-                    }
-                    v14::StorageEntryType::NMap { keys, hashers, value } => {
-                        let keys_ty = self.resolve_type(keys)?;
-                        let keys =
-                            match keys_ty.type_def() {
-                                TypeDef::Tuple(tuple) => {
-                                    tuple.fields().iter().map(|f| self.get_type_ident(*f)).collect::<Result<Vec<_>>>()
-                                }
-                                td => Err(format!("Expected a tuple type for NMap keys, got {:?}", td))
-                            }?;
-                        v13::StorageEntryType::NMap {
-                            keys: DecodeDifferent::Decoded(keys),
-                            hashers: hashers.iter().map(convert_hasher).collect(),
-                            value: self.get_type_ident(value)?,
-                        }
-                    }
-                };
+
+                let ty = self.convert_storage_entry_type(&entry.ty)?;
                 let default = todo!();
                 Ok(v13::StorageEntryMetadata {
                     name: DecodeDifferent::Decoded(entry.name),
@@ -180,11 +130,76 @@ impl Converter {
                     documentation: DecodeDifferent::Decoded(entry.docs)
                 })
             })
-            .collect();
+            .collect::<Result<Vec<_>>>()?;
         Ok(v13::StorageMetadata {
-            prefix: DecodeDifferent::Decoded(storage.prefix),
+            prefix: DecodeDifferent::Decoded(storage.prefix.clone()),
             entries: DecodeDifferent::Decoded(entries)
         })
+    }
+
+    fn convert_storage_entry_type(&self, storage_entry_type: &v14::StorageEntryType<PortableForm>) -> Result<v13::StorageEntryType> {
+        let convert_hasher = |hasher: &v14::StorageHasher| {
+            match hasher {
+                v14::StorageHasher::Blake2_128 => v13::StorageHasher::Blake2_128,
+                v14::StorageHasher::Blake2_256 => v13::StorageHasher::Blake2_256,
+                v14::StorageHasher::Blake2_128Concat => v13::StorageHasher::Blake2_128Concat,
+                v14::StorageHasher::Twox128 => v13::StorageHasher::Twox128,
+                v14::StorageHasher::Twox256 => v13::StorageHasher::Twox256,
+                v14::StorageHasher::Twox64Concat => v13::StorageHasher::Twox64Concat,
+                v14::StorageHasher::Identity => v13::StorageHasher::Identity,
+            }
+        };
+
+        match storage_entry_type {
+            v14::StorageEntryType::<PortableForm>::Plain(key) => {
+                let type_ident = self.get_type_ident(key)?;
+                Ok(v13::StorageEntryType::Plain(DecodeDifferent::Decoded(type_ident)))
+            }
+            v14::StorageEntryType::<PortableForm>::Map { hashers, key, value } => {
+                let keys_ty = self.resolve_type(key)?;
+                let key_idents =
+                    match keys_ty.type_def() {
+                        TypeDef::Tuple(tuple) => {
+                            tuple.fields().iter().map(|f| self.get_type_ident(f)).collect::<Result<Vec<_>>>()
+                        }
+                        _ => Ok(vec![self.get_type_ident(key)?])
+                    }?;
+
+                match &hashers[..] {
+                    [] => panic!("Expected at least one hasher"),
+                    [hasher] => {
+                        Ok(v13::StorageEntryType::Map {
+                            hasher: convert_hasher(hasher),
+                            key: DecodeDifferentStr::Decoded(self.get_type_ident(key)?),
+                            value: DecodeDifferentStr::Decoded(self.get_type_ident(value)?),
+                            unused: false
+                        })
+                    },
+                    [hasher, key2_hasher] => {
+                        match &key_idents[..] {
+                            [key1, key2] => {
+                                Ok(v13::StorageEntryType::DoubleMap {
+                                    hasher: convert_hasher(hasher),
+                                    key1: DecodeDifferentStr::Decoded(key1.clone()),
+                                    key2: DecodeDifferentStr::Decoded(key2.clone()),
+                                    value: DecodeDifferentStr::Decoded(self.get_type_ident(value)?),
+                                    key2_hasher: convert_hasher(key2_hasher),
+                                })
+                            }
+                            _ => Err(format!("Expected two keys for a DoubleMap, found {:?}", key_idents))
+                        }
+                    },
+                    hashers => {
+                        let hashers = hashers.iter().map(convert_hasher).collect::<Vec<_>>();
+                        Ok(v13::StorageEntryType::NMap {
+                            keys: DecodeDifferent::Decoded(key_idents),
+                            hashers: DecodeDifferent::Decoded(hashers),
+                            value: DecodeDifferentStr::Decoded(self.get_type_ident(value)?),
+                        })
+                    }
+                }
+            }
+        }
     }
 
     fn convert_call(&self, call: &v14::PalletCallMetadata<PortableForm>) -> Result<Vec<v13::FunctionMetadata>> {
@@ -203,41 +218,43 @@ impl Converter {
         todo!()
     }
 
-    fn resolve_type(&self, ty: <PortableForm as Form>::Type) -> Result<&Type<PortableForm>> {
+    fn resolve_type(&self, ty: &<PortableForm as Form>::Type) -> Result<&Type<PortableForm>> {
         self.metadata.types.resolve(ty.id()).ok_or_else(|| format!("Type {} not found", ty.id()))
     }
 
-    fn get_type_ident(&self, ty: <PortableForm as Form>::Type) -> Result<String> {
+    fn get_type_ident(&self, ty: &<PortableForm as Form>::Type) -> Result<String> {
         let ty = self.resolve_type(ty)?;
-        Ok(match ty.type_def() {
-            TypeDef::Composite(_) | TypeDef::Variant(_) => ty.ident().unwrap_or_else(|| format!("Type should have an indent")),
-            TypeDef::Sequence(_) => todo!(),
-            TypeDef::Array(_) => todo!(),
-            TypeDef::Tuple(_) => todo!(),
-            TypeDef::Primitive(primitive) => {
-                let type_str =
-                    match primitive {
-                        TypeDefPrimitive::Bool => "bool",
-                        TypeDefPrimitive::Char => "char",
-                        TypeDefPrimitive::Str => "str",
-                        TypeDefPrimitive::U8 => "u8",
-                        TypeDefPrimitive::U16 => "u16",
-                        TypeDefPrimitive::U32 => "u32",
-                        TypeDefPrimitive::U64 => "u64",
-                        TypeDefPrimitive::U128 => "u128",
-                        TypeDefPrimitive::U256 => "U256",
-                        TypeDefPrimitive::I8 => "i8",
-                        TypeDefPrimitive::I16 => "i16",
-                        TypeDefPrimitive::I32 => "i32",
-                        TypeDefPrimitive::I64 => "i64",
-                        TypeDefPrimitive::I128 => "i128",
-                        TypeDefPrimitive::I256 => "I256",
-                    };
-                type_str.to_string()
-            }
-            TypeDef::Compact(_) => todo!(),
-            TypeDef::BitSequence(_) => todo!(),
-        })
+        let type_ident =
+            match ty.type_def() {
+                TypeDef::Composite(_) | TypeDef::Variant(_) => ty.path().ident().unwrap_or_else(|| format!("Type should have an indent")),
+                TypeDef::Sequence(_) => todo!(),
+                TypeDef::Array(_) => todo!(),
+                TypeDef::Tuple(_) => todo!(),
+                TypeDef::Primitive(primitive) => {
+                    let type_str =
+                        match primitive {
+                            TypeDefPrimitive::Bool => "bool",
+                            TypeDefPrimitive::Char => "char",
+                            TypeDefPrimitive::Str => "str",
+                            TypeDefPrimitive::U8 => "u8",
+                            TypeDefPrimitive::U16 => "u16",
+                            TypeDefPrimitive::U32 => "u32",
+                            TypeDefPrimitive::U64 => "u64",
+                            TypeDefPrimitive::U128 => "u128",
+                            TypeDefPrimitive::U256 => "U256",
+                            TypeDefPrimitive::I8 => "i8",
+                            TypeDefPrimitive::I16 => "i16",
+                            TypeDefPrimitive::I32 => "i32",
+                            TypeDefPrimitive::I64 => "i64",
+                            TypeDefPrimitive::I128 => "i128",
+                            TypeDefPrimitive::I256 => "I256",
+                        };
+                    type_str.to_string()
+                }
+                TypeDef::Compact(_) => todo!(),
+                TypeDef::BitSequence(_) => todo!(),
+            };
+        Ok(type_ident)
     }
 }
 
