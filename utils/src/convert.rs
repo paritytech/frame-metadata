@@ -385,13 +385,21 @@ impl Converter {
 mod tests {
 	use codec::Decode;
 	use frame_metadata::RuntimeMetadataPrefixed;
+	use pretty_assertions::assert_eq;
 	use std::{env, fs, io::Read, path};
+
+	fn decode_metadata(path: &str) -> RuntimeMetadataPrefixed {
+		let root = env::var("CARGO_MANIFEST_DIR").unwrap_or(".".into());
+		let root_path = path::Path::new(&root);
+		let path = root_path.join(path);
+		let mut file = fs::File::open(path).expect("Error opening metadata file");
+		let mut bytes = Vec::new();
+		file.read_to_end(&mut bytes).expect("Error reading metadata file");
+		RuntimeMetadataPrefixed::decode(&mut &bytes[..]).expect("Error decoding metadata file")
+	}
 
 	#[test]
 	fn substrate_node_runtime_v14_to_v13() {
-		let root = env::var("CARGO_MANIFEST_DIR").unwrap_or(".".into());
-		let root_path = path::Path::new(&root);
-
 		// generate with:
 		// curl -sX POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"state_getMetadata", "id": 1}' localhost:9933 \
 		// | jq .result \
@@ -399,14 +407,11 @@ mod tests {
 		// | xxd -r -p > ./utils/node-runtime-v13.scale
 		//
 		// last run against substrate master commit 4d93a6ee4
-		let path = root_path.join("node-runtime-v13.scale");
+		let v13 = decode_metadata("node-runtime-v13.scale");
+		let v14 = decode_metadata("node-runtime-v14.scale");
 
-		let mut file = fs::File::open(path).expect("Error opening metadata file");
-		let mut bytes = Vec::new();
-		file.read_to_end(&mut bytes).expect("Error reading metadata file");
-
-		let metadata = RuntimeMetadataPrefixed::decode(&mut &bytes[..]).expect("Error decoding metadata file");
-
-		// todo: download and decode V14, run conversion, compare to original V13
+		let converted = super::backwards(v14).unwrap();
+		println!("Comparing");
+		assert_eq!(v13, converted)
 	}
 }
