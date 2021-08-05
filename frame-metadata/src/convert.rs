@@ -224,37 +224,35 @@ impl Converter {
 
     fn get_type_ident(&self, ty: &<PortableForm as Form>::Type) -> Result<String> {
         let ty = self.resolve_type(ty)?;
-        let type_ident =
-            match ty.type_def() {
-                TypeDef::Composite(_) | TypeDef::Variant(_) => ty.path().ident().unwrap_or_else(|| format!("Type should have an indent")),
-                TypeDef::Sequence(_) => todo!(),
-                TypeDef::Array(_) => todo!(),
-                TypeDef::Tuple(_) => todo!(),
-                TypeDef::Primitive(primitive) => {
-                    let type_str =
-                        match primitive {
-                            TypeDefPrimitive::Bool => "bool",
-                            TypeDefPrimitive::Char => "char",
-                            TypeDefPrimitive::Str => "str",
-                            TypeDefPrimitive::U8 => "u8",
-                            TypeDefPrimitive::U16 => "u16",
-                            TypeDefPrimitive::U32 => "u32",
-                            TypeDefPrimitive::U64 => "u64",
-                            TypeDefPrimitive::U128 => "u128",
-                            TypeDefPrimitive::U256 => "U256",
-                            TypeDefPrimitive::I8 => "i8",
-                            TypeDefPrimitive::I16 => "i16",
-                            TypeDefPrimitive::I32 => "i32",
-                            TypeDefPrimitive::I64 => "i64",
-                            TypeDefPrimitive::I128 => "i128",
-                            TypeDefPrimitive::I256 => "I256",
-                        };
-                    type_str.to_string()
-                }
-                TypeDef::Compact(_) => todo!(),
-                TypeDef::BitSequence(_) => todo!(),
-            };
-        Ok(type_ident)
+        match ty.type_def() {
+            TypeDef::Composite(_) | TypeDef::Variant(_) => ty.path().ident().ok_or_else(|| format!("Type should have an indent")),
+            TypeDef::Sequence(_) => todo!(),
+            TypeDef::Array(_) => todo!(),
+            TypeDef::Tuple(_) => todo!(),
+            TypeDef::Primitive(primitive) => {
+                let type_str =
+                    match primitive {
+                        TypeDefPrimitive::Bool => "bool",
+                        TypeDefPrimitive::Char => "char",
+                        TypeDefPrimitive::Str => "str",
+                        TypeDefPrimitive::U8 => "u8",
+                        TypeDefPrimitive::U16 => "u16",
+                        TypeDefPrimitive::U32 => "u32",
+                        TypeDefPrimitive::U64 => "u64",
+                        TypeDefPrimitive::U128 => "u128",
+                        TypeDefPrimitive::U256 => "U256",
+                        TypeDefPrimitive::I8 => "i8",
+                        TypeDefPrimitive::I16 => "i16",
+                        TypeDefPrimitive::I32 => "i32",
+                        TypeDefPrimitive::I64 => "i64",
+                        TypeDefPrimitive::I128 => "i128",
+                        TypeDefPrimitive::I256 => "I256",
+                    };
+                Ok(type_str.to_string())
+            }
+            TypeDef::Compact(_) => todo!(),
+            TypeDef::BitSequence(_) => todo!(),
+        }
     }
 }
 
