@@ -121,13 +121,12 @@ impl Converter {
                 };
 
                 let ty = self.convert_storage_entry_type(&entry.ty)?;
-                let default = todo!();
                 Ok(v13::StorageEntryMetadata {
-                    name: DecodeDifferent::Decoded(entry.name),
+                    name: DecodeDifferent::Decoded(entry.name.clone()),
                     modifier,
                     ty,
-                    default,
-                    documentation: DecodeDifferent::Decoded(entry.docs)
+                    default: DecodeDifferent::Decoded(entry.default.clone()),
+                    documentation: DecodeDifferent::Decoded(entry.docs.clone())
                 })
             })
             .collect::<Result<Vec<_>>>()?;
