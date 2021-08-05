@@ -202,7 +202,31 @@ impl Converter {
     }
 
     fn convert_call(&self, call: &v14::PalletCallMetadata<PortableForm>) -> Result<Vec<v13::FunctionMetadata>> {
-        todo!()
+        let ty = self.resolve_type(&call.ty)?;
+
+        if let TypeDef::Variant(call) = ty.type_def() {
+            call
+                .variants()
+                .iter()
+                .map(|variant| {
+                    let arguments =
+                        variant.fields().iter().map(|f| {
+                            let name = f.name().ok_or_else(|| format!("Expected named variant fields"))?;
+                            Ok(v13::FunctionArgumentMetadata {
+                                name: DecodeDifferent::Decoded(name.clone()),
+                                ty: DecodeDifferentStr::Decoded(self.get_type_ident(f.ty())?)
+                            })
+                        }).collect::<Result<Vec<_>>>()?;
+                    Ok(v13::FunctionMetadata {
+                        name: DecodeDifferent::Decoded(variant.name().clone()),
+                        arguments: DecodeDifferentArray::Decoded(arguments),
+                        documentation: DecodeDifferentArray::Decoded(variant.docs().to_vec()),
+                    })
+                })
+                .collect()
+        } else {
+            Err("Call type should be an enum/variant type".into())
+        }
     }
 
     fn convert_event(&self, event: &v14::PalletEventMetadata<PortableForm>) -> Result<Vec<v13::EventMetadata>> {
