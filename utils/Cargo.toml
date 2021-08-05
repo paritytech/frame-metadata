@@ -10,8 +10,9 @@ description = "Metadata utilities"
 readme = "README.md"
 
 [dependencies]
-frame-metadata = { version = "14.0.0-rc.2", path = "../frame-metadata", default-features = false }
 codec = { package = "parity-scale-codec", version = "2.0.0" }
+frame-metadata = { version = "14.0.0-rc.2", path = "../frame-metadata", default-features = false }
+scale-info = { version = "0.10.0", default-features = false, optional = true, features = ["derive"] }
 
 [features]
 default = [
@@ -21,4 +22,5 @@ default = [
 ]
 std = [
     "frame-metadata/std",
+    "scale-info/std",
 ]

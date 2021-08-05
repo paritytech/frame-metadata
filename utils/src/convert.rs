@@ -17,7 +17,7 @@
 
 use frame_metadata::{
 	decode_different::{DecodeDifferent, DecodeDifferentArray, DecodeDifferentStr},
-	v13, v14,
+	v13, v14, RuntimeMetadata, RuntimeMetadataPrefixed,
 };
 use scale_info::{
 	form::{Form, PortableForm},
@@ -26,6 +26,20 @@ use scale_info::{
 
 pub type MetadataConversionError = String;
 pub type Result<T> = core::result::Result<T, MetadataConversionError>;
+
+/// Convert the current version to the previous version.
+pub fn backwards(metadata: RuntimeMetadataPrefixed) -> Result<RuntimeMetadataPrefixed> {
+	match metadata.1 {
+		RuntimeMetadata::V14(v14) => Ok(RuntimeMetadataPrefixed(
+			metadata.0,
+			RuntimeMetadata::V13(v14_to_v13(v14)?),
+		)),
+		_ => Err(format!(
+			"Unsupported metadata version V{}, currently only V14 to v13 conversion supported",
+			metadata.1.version()
+		)),
+	}
+}
 
 /// Convert V14 metadata to V13.
 pub fn v14_to_v13(metadata: v14::RuntimeMetadataV14) -> Result<v13::RuntimeMetadataV13> {
