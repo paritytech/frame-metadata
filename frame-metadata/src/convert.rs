@@ -251,8 +251,8 @@ impl Converter {
 	) -> Result<Vec<v13::EventMetadata>> {
 		let ty = self.resolve_type(&event.ty)?;
 
-		if let TypeDef::Variant(call) = ty.type_def() {
-			call.variants()
+		if let TypeDef::Variant(event) = ty.type_def() {
+			event.variants()
 				.iter()
 				.map(|variant| {
 					let arguments = variant
@@ -288,7 +288,20 @@ impl Converter {
 		&self,
 		error: &v14::PalletErrorMetadata<PortableForm>,
 	) -> Result<Vec<v13::ErrorMetadata>> {
-		todo!()
+        let ty = self.resolve_type(&error.ty)?;
+        if let TypeDef::Variant(error) = ty.type_def() {
+            error.variants()
+                .iter()
+                .map(|variant| {
+                    Ok(v13::ErrorMetadata {
+                        name: DecodeDifferentStr::Decoded(variant.name().clone()),
+                        documentation: DecodeDifferentArray::Decoded(variant.docs().to_vec())
+                    })
+                })
+                .collect()
+        } else {
+            Err("Call type should be an enum/variant type".into())
+        }
 	}
 
 	fn resolve_type(&self, ty: &<PortableForm as Form>::Type) -> Result<&Type<PortableForm>> {
