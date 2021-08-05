@@ -398,6 +398,7 @@ mod tests {
 		// | cut -d '"' -f 2 \
 		// | xxd -r -p > ./utils/node-runtime-v13.scale
 		//
+		// last run against substrate master commit 4d93a6ee4
 		let path = root_path.join("node-runtime-v13.scale");
 
 		let mut file = fs::File::open(path).expect("Error opening metadata file");
@@ -405,5 +406,7 @@ mod tests {
 		file.read_to_end(&mut bytes).expect("Error reading metadata file");
 
 		let metadata = RuntimeMetadataPrefixed::decode(&mut &bytes[..]).expect("Error decoding metadata file");
+
+		// todo: download and decode V14, run conversion, compare to original V13
 	}
 }
