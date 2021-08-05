@@ -1,0 +1,24 @@
+[package]
+name = "frame-metadata-utils"
+version = "0.1.0"
+authors = ["Parity Technologies <admin@parity.io>"]
+edition = "2018"
+license = "Apache-2.0"
+homepage = "https://substrate.dev"
+repository = "https://github.com/paritytech/frame-metadata/"
+description = "Metadata utilities"
+readme = "README.md"
+
+[dependencies]
+frame-metadata = { version = "14.0.0-rc.2", path = "../frame-metadata", default-features = false }
+codec = { package = "parity-scale-codec", version = "2.0.0" }
+
+[features]
+default = [
+    "frame-metadata/v14",
+    "frame-metadata/v13",
+    "std",
+]
+std = [
+    "frame-metadata/std",
+]

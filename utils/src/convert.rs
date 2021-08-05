@@ -1,4 +1,4 @@
-// This file is part of Substrate.
+// This file is part of frame-metadata.
 
 // Copyright (C) 2018-2020 Parity Technologies (UK) Ltd.
 // SPDX-License-Identifier: Apache-2.0
@@ -15,9 +15,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::decode_different::{DecodeDifferent, DecodeDifferentArray, DecodeDifferentStr};
-use crate::{v13, v14};
-use core::convert::TryFrom;
+use frame_metadata::{
+	decode_different::{DecodeDifferent, DecodeDifferentArray, DecodeDifferentStr},
+	v13, v14,
+};
 use scale_info::{
 	form::{Form, PortableForm},
 	Type, TypeDef, TypeDefPrimitive,
@@ -26,13 +27,10 @@ use scale_info::{
 pub type MetadataConversionError = String;
 pub type Result<T> = core::result::Result<T, MetadataConversionError>;
 
-impl TryFrom<v14::RuntimeMetadataV14> for v13::RuntimeMetadataV13 {
-	type Error = MetadataConversionError;
-
-	fn try_from(metadata: v14::RuntimeMetadataV14) -> Result<Self> {
-		let converter = Converter { metadata };
-		converter.convert()
-	}
+/// Convert V14 metadata to V13.
+pub fn v14_to_v13(metadata: v14::RuntimeMetadataV14) -> Result<v13::RuntimeMetadataV13> {
+	let converter = Converter { metadata };
+	converter.convert()
 }
 
 struct Converter {

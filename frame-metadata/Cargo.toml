@@ -20,7 +20,6 @@ serde = { version = "1.0.101", optional = true, features = ["derive"] }
 
 [features]
 default = ["std", "v14"]
-convert = ["std", "v13", "v14"]
 v12 = []
 v13 = []
 v14 = ["scale-info"]
