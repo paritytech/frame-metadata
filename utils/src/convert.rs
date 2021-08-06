@@ -273,7 +273,10 @@ impl Converter {
 					let arguments = variant
 						.fields()
 						.iter()
-						.map(|f| self.field_type_name(f))
+						.map(|f| {
+							let field_type = self.field_type_name(f)?;
+							Ok(field_type.replace("T::", "").into())
+						})
 						.collect::<Result<Vec<_>>>()?;
 					Ok(v13::EventMetadata {
 						name: DecodeDifferentStr::Decoded(variant.name().clone()),
@@ -335,7 +338,7 @@ impl Converter {
 		match field.type_name() {
 			Some(type_name) => {
 				let ty = self.resolve_type(field.ty())?;
-				if let TypeDef::Compact(compact) = ty.type_def() {
+				if let TypeDef::Compact(_) = ty.type_def() {
 					Ok(format!("Compact<{}>", type_name))
 				} else {
 					Ok(type_name.to_string())
