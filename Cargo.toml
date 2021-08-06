@@ -2,4 +2,5 @@
 members = [
   "frame-metadata",
   "utils",
+  "cli",
 ]
