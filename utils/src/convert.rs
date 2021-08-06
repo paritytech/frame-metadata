@@ -21,7 +21,7 @@ use frame_metadata::{
 };
 use scale_info::{
 	form::{Form, PortableForm},
-	Type, TypeDef, TypeDefPrimitive,
+	Field, Type, TypeDef, TypeDefPrimitive,
 };
 
 pub type MetadataConversionError = String;
@@ -241,14 +241,16 @@ impl Converter {
 								.ok_or_else(|| format!("Expected named variant fields"))?;
 							Ok(v13::FunctionArgumentMetadata {
 								name: DecodeDifferent::Decoded(name.clone()),
-								ty: DecodeDifferentStr::Decoded(self.get_type_ident(f.ty())?),
+								ty: DecodeDifferentStr::Decoded(self.field_type_name(f)?),
 							})
 						})
 						.collect::<Result<Vec<_>>>()?;
 					Ok(v13::FunctionMetadata {
 						name: DecodeDifferent::Decoded(variant.name().clone()),
 						arguments: DecodeDifferentArray::Decoded(arguments),
-						documentation: DecodeDifferentArray::Decoded(variant.docs().to_vec()),
+						documentation: DecodeDifferentArray::Decoded(Self::convert_docs(
+							variant.docs(),
+						)),
 					})
 				})
 				.collect()
@@ -271,12 +273,14 @@ impl Converter {
 					let arguments = variant
 						.fields()
 						.iter()
-						.map(|f| self.get_type_ident(f.ty()))
+						.map(|f| self.field_type_name(f))
 						.collect::<Result<Vec<_>>>()?;
 					Ok(v13::EventMetadata {
 						name: DecodeDifferentStr::Decoded(variant.name().clone()),
 						arguments: DecodeDifferentArray::Decoded(arguments),
-						documentation: DecodeDifferentArray::Decoded(variant.docs().to_vec()),
+						documentation: DecodeDifferentArray::Decoded(Self::convert_docs(
+							variant.docs(),
+						)),
 					})
 				})
 				.collect()
@@ -309,7 +313,9 @@ impl Converter {
 				.map(|variant| {
 					Ok(v13::ErrorMetadata {
 						name: DecodeDifferentStr::Decoded(variant.name().clone()),
-						documentation: DecodeDifferentArray::Decoded(variant.docs().to_vec()),
+						documentation: DecodeDifferentArray::Decoded(Self::convert_docs(
+							variant.docs(),
+						)),
 					})
 				})
 				.collect()
@@ -323,6 +329,20 @@ impl Converter {
 			.types
 			.resolve(ty.id())
 			.ok_or_else(|| format!("Type {} not found", ty.id()))
+	}
+
+	fn field_type_name(&self, field: &Field<PortableForm>) -> Result<String> {
+		match field.type_name() {
+			Some(type_name) => {
+				let ty = self.resolve_type(field.ty())?;
+				if let TypeDef::Compact(compact) = ty.type_def() {
+					Ok(format!("Compact<{}>", type_name))
+				} else {
+					Ok(type_name.to_string())
+				}
+			}
+			None => self.get_type_ident(field.ty()),
+		}
 	}
 
 	fn get_type_ident(&self, ty: &<PortableForm as Form>::Type) -> Result<String> {
@@ -379,6 +399,19 @@ impl Converter {
 			)),
 		}
 	}
+
+	/// Add the space prefix for docs in v13 metadata.
+	fn convert_docs(docs: &[String]) -> Vec<String> {
+		docs.iter()
+			.map(|doc| {
+				if !doc.is_empty() {
+					format!(" {}", doc)
+				} else {
+					doc.to_string()
+				}
+			})
+			.collect()
+	}
 }
 
 #[cfg(test)]
@@ -394,7 +427,8 @@ mod tests {
 		let path = root_path.join(path);
 		let mut file = fs::File::open(path).expect("Error opening metadata file");
 		let mut bytes = Vec::new();
-		file.read_to_end(&mut bytes).expect("Error reading metadata file");
+		file.read_to_end(&mut bytes)
+			.expect("Error reading metadata file");
 		RuntimeMetadataPrefixed::decode(&mut &bytes[..]).expect("Error decoding metadata file")
 	}
 
@@ -409,6 +443,14 @@ mod tests {
 		// last run against substrate master commit 4d93a6ee4
 		let v13 = decode_metadata("node-runtime-v13.scale");
 		let v14 = decode_metadata("node-runtime-v14.scale");
+
+		// todo: use field type name where possible for aliases (consider `Compact`)
+		// todo: for storage entry tuple keys where can't determine alias, provide concrete type mappings?
+
+		// todo: add CLI tool
+
+		// todo: CUMULUS companion
+		// todo: merge substrate/polkadot PRs as soon as polkadot release branched off
 
 		let converted = super::backwards(v14).unwrap();
 		println!("Comparing");
