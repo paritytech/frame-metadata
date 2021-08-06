@@ -534,7 +534,11 @@ mod tests {
 							.iter()
 							.zip(decoded_vec(&converted_event.arguments))
 						{
-							assert_eq!(orig_arg, converted_arg, "{:?}::{:?}", orig_mod.name, orig_event.name);
+							assert_eq!(
+								orig_arg, converted_arg,
+								"{:?}::{:?}",
+								orig_mod.name, orig_event.name
+							);
 						}
 					}
 				}
