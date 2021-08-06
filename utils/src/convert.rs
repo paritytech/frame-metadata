@@ -420,7 +420,10 @@ impl Converter {
 #[cfg(test)]
 mod tests {
 	use codec::Decode;
-	use frame_metadata::RuntimeMetadataPrefixed;
+	use frame_metadata::decode_different::DecodeDifferentStr;
+	use frame_metadata::{
+		decode_different::DecodeDifferent, v13, RuntimeMetadata, RuntimeMetadataPrefixed,
+	};
 	use pretty_assertions::assert_eq;
 	use std::{env, fs, io::Read, path};
 
@@ -435,8 +438,7 @@ mod tests {
 		RuntimeMetadataPrefixed::decode(&mut &bytes[..]).expect("Error decoding metadata file")
 	}
 
-	#[test]
-	fn substrate_node_runtime_v14_to_v13() {
+	fn convert() -> (v13::RuntimeMetadataV13, v13::RuntimeMetadataV13) {
 		// generate with:
 		// curl -sX POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"state_getMetadata", "id": 1}' localhost:9933 \
 		// | jq .result \
@@ -447,16 +449,69 @@ mod tests {
 		let v13 = decode_metadata("node-runtime-v13.scale");
 		let v14 = decode_metadata("node-runtime-v14.scale");
 
-		// todo: use field type name where possible for aliases (consider `Compact`)
+		let converted = super::backwards(v14).expect("Error converting");
+		if let (RuntimeMetadata::V13(v13), RuntimeMetadata::V13(converted)) = (v13.1, converted.1) {
+			(v13, converted)
+		} else {
+			panic!("Original and converted should both be V13")
+		}
+	}
+
+	fn decoded_vec<E, T>(arr: &DecodeDifferent<E, Vec<T>>) -> &[T] {
+		if let DecodeDifferent::Decoded(decoded) = arr {
+			decoded
+		} else {
+			panic!("Should be Decoded")
+		}
+	}
+
+	fn decoded_str(s: &DecodeDifferentStr) -> &str {
+		if let DecodeDifferentStr::Decoded(decoded) = s {
+			decoded
+		} else {
+			panic!("Should be Decoded")
+		}
+	}
+
+	#[test]
+	fn v14_to_v13_calls() {
 		// todo: for storage entry tuple keys where can't determine alias, provide concrete type mappings?
 
 		// todo: add CLI tool
 
-		// todo: CUMULUS companion
-		// todo: merge substrate/polkadot PRs as soon as polkadot release branched off
+		let (v13, converted) = convert();
 
-		let converted = super::backwards(v14).unwrap();
-		println!("Comparing");
-		assert_eq!(v13, converted)
+		for (orig, converted) in decoded_vec(&v13.modules)
+			.iter()
+			.zip(decoded_vec(&converted.modules))
+		{
+			match (orig.calls.as_ref(), converted.calls.as_ref()) {
+				(Some(orig_calls), Some(converted_calls)) => {
+					for (orig_call, converted_call) in decoded_vec(orig_calls)
+						.iter()
+						.zip(decoded_vec(converted_calls))
+					{
+						assert_eq!(orig_call.name, converted_call.name);
+						assert_eq!(orig_call.documentation, converted_call.documentation);
+
+						for (orig_arg, converted_arg) in decoded_vec(&orig_call.arguments)
+							.iter()
+							.zip(decoded_vec(&converted_call.arguments))
+						{
+							// V14 removes underscores from the names of the FRAME V2 call args
+							assert_eq!(
+								decoded_str(&orig_arg.name).trim_start_matches("_"),
+								decoded_str(&converted_arg.name).trim_start_matches("_"),
+								"{:?}",
+								orig_call.name
+							);
+							assert_eq!(orig_arg.ty, converted_arg.ty);
+						}
+					}
+				}
+				(None, None) => (),
+				_ => assert_eq!(orig.calls.is_some(), orig.calls.is_some()),
+			}
+		}
 	}
 }
