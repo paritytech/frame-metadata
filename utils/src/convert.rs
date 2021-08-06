@@ -475,8 +475,6 @@ mod tests {
 
 	#[test]
 	fn v14_to_v13_calls() {
-		// todo: for storage entry tuple keys where can't determine alias, provide concrete type mappings?
-
 		// todo: add CLI tool
 
 		let (v13, converted) = convert();
@@ -511,6 +509,37 @@ mod tests {
 				}
 				(None, None) => (),
 				_ => assert_eq!(orig.calls.is_some(), orig.calls.is_some()),
+			}
+		}
+	}
+
+	#[test]
+	fn v14_to_v13_events() {
+		let (v13, converted) = convert();
+
+		for (orig_mod, converted_mod) in decoded_vec(&v13.modules)
+			.iter()
+			.zip(decoded_vec(&converted.modules))
+		{
+			match (orig_mod.event.as_ref(), converted_mod.event.as_ref()) {
+				(Some(orig_events), Some(converted_events)) => {
+					for (orig_event, converted_event) in decoded_vec(orig_events)
+						.iter()
+						.zip(decoded_vec(converted_events))
+					{
+						assert_eq!(orig_event.name, converted_event.name);
+						assert_eq!(orig_event.documentation, converted_event.documentation);
+
+						for (orig_arg, converted_arg) in decoded_vec(&orig_event.arguments)
+							.iter()
+							.zip(decoded_vec(&converted_event.arguments))
+						{
+							assert_eq!(orig_arg, converted_arg, "{:?}::{:?}", orig_mod.name, orig_event.name);
+						}
+					}
+				}
+				(None, None) => (),
+				_ => assert_eq!(orig_mod.calls.is_some(), orig_mod.calls.is_some()),
 			}
 		}
 	}
