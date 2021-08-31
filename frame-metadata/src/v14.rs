@@ -50,17 +50,25 @@ pub struct RuntimeMetadataV14 {
 	pub pallets: Vec<PalletMetadata<PortableForm>>,
 	/// Metadata of the extrinsic.
 	pub extrinsic: ExtrinsicMetadata<PortableForm>,
+	/// The type of the `Runtime`.
+	pub ty: <PortableForm as Form>::Type,
 }
 
 impl RuntimeMetadataV14 {
-	pub fn new(pallets: Vec<PalletMetadata>, extrinsic: ExtrinsicMetadata) -> Self {
+	pub fn new(
+		pallets: Vec<PalletMetadata>,
+		extrinsic: ExtrinsicMetadata,
+		runtime_type: MetaType,
+	) -> Self {
 		let mut registry = Registry::new();
 		let pallets = registry.map_into_portable(pallets);
 		let extrinsic = extrinsic.into_portable(&mut registry);
+		let ty = registry.register_type(&runtime_type);
 		Self {
 			types: registry.into(),
 			pallets,
 			extrinsic,
+			ty,
 		}
 	}
 }

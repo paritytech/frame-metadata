@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [14.0.0-rc.3] - 2021-08-31
+### Added
+- Add Runtime type to metadata
+
 ## [14.0.0-rc.2] - 2021-08-04
 ### Changed
 Combine Map/NMap/DoubleMap StorageEntryTypes [#23](https://github.com/paritytech/frame-metadata/pull/23)
