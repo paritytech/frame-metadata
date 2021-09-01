@@ -138,6 +138,7 @@ impl IntoPortable for SignedExtensionMetadata {
 )]
 pub struct PalletMetadata<T: Form = MetaForm> {
 	pub name: T::String,
+	pub config_associated_types: Vec<PalletConfigAssociatedType<T>>,
 	pub storage: Option<PalletStorageMetadata<T>>,
 	pub calls: Option<PalletCallMetadata<T>>,
 	pub event: Option<PalletEventMetadata<T>>,
@@ -154,6 +155,7 @@ impl IntoPortable for PalletMetadata {
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		PalletMetadata {
 			name: self.name.into_portable(registry),
+			config_associated_types: registry.map_into_portable(self.config_associated_types),
 			storage: self.storage.map(|storage| storage.into_portable(registry)),
 			calls: self.calls.map(|calls| calls.into_portable(registry)),
 			event: self.event.map(|event| event.into_portable(registry)),
@@ -376,5 +378,30 @@ impl IntoPortable for PalletErrorMetadata {
 impl From<MetaType> for PalletErrorMetadata {
 	fn from(ty: MetaType) -> Self {
 		Self { ty }
+	}
+}
+
+/// Metadata about a pallet `Config` trait associated type.
+#[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(
+	feature = "std",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct PalletConfigAssociatedType<T: Form = MetaForm> {
+	/// The name of the trait associated type.
+	pub name: T::String,
+	/// The associated type.
+	pub ty: T::Type,
+}
+
+impl IntoPortable for PalletConfigAssociatedType {
+	type Output = PalletConfigAssociatedType<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		PalletConfigAssociatedType {
+			name: self.name.into_portable(registry),
+			ty: registry.register_type(&self.ty),
+		}
 	}
 }
