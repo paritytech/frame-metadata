@@ -34,8 +34,11 @@ cfg_if::cfg_if! {
 
 use codec::{Encode, Output};
 
-#[cfg(any(feature = "v12", feature = "v13"))]
+#[cfg(any(feature = "v12", feature = "v13", feature = "v11"))]
 pub mod decode_different;
+
+#[cfg(feature = "v11")]
+pub mod v11;
 
 #[cfg(feature = "v12")]
 pub mod v12;
@@ -91,8 +94,12 @@ pub enum RuntimeMetadata {
 	V9(RuntimeMetadataDeprecated),
 	/// Version 10 for runtime metadata. No longer used.
 	V10(RuntimeMetadataDeprecated),
-	/// Version 11 for runtime metadata. No longer used.
-	V11(RuntimeMetadataDeprecated),
+	/// Version 11 for runtime metadata.
+	#[cfg(feature = "v11")]
+    V11(v11::RuntimeMetadataV11),
+    /// Version 11 for runtime metadata, as raw encoded bytes.
+    #[cfg(not(feature = "v11"))]
+    V11(OpaqueMetadata),
 	/// Version 12 for runtime metadata
 	#[cfg(feature = "v12")]
 	V12(v12::RuntimeMetadataV12),
