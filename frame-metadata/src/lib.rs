@@ -34,7 +34,15 @@ cfg_if::cfg_if! {
 
 use codec::{Encode, Output};
 
-#[cfg(any(feature = "v12", feature = "v13", feature = "v11"))]
+#[cfg(any(
+	feature = "v13",
+	feature = "v12",
+	feature = "v11",
+	feature = "v10",
+	feature = "v9",
+	feature = "v8",
+	feature = "legacy"
+))]
 pub mod decode_different;
 
 #[cfg(feature = "v8")]
@@ -97,36 +105,36 @@ pub enum RuntimeMetadata {
 	V6(RuntimeMetadataDeprecated),
 	/// Version 7 for runtime metadata. No longer used.
 	V7(RuntimeMetadataDeprecated),
-	
-    /// Version 8 for runtime metadata.
+
+	/// Version 8 for runtime metadata.
 	#[cfg(feature = "v8")]
-    V8(v8::RuntimeMetadataV8),
-    #[cfg(not(feature = "v8"))] 
-    V8(OpaqueMetadata),
+	V8(v8::RuntimeMetadataV8),
+	#[cfg(not(feature = "v8"))]
+	V8(OpaqueMetadata),
 
-    /// Version 9 for runtime metadata.
+	/// Version 9 for runtime metadata.
 	#[cfg(feature = "v9")]
-    V9(v9::RuntimeMetadataV9),
-   	/// Version 9 for runtime metadata, as raw encoded bytes.
-    #[cfg(not(feature = "v9"))]
-    V9(OpaqueMetadata),
+	V9(v9::RuntimeMetadataV9),
+	/// Version 9 for runtime metadata, as raw encoded bytes.
+	#[cfg(not(feature = "v9"))]
+	V9(OpaqueMetadata),
 
-    /// Version 10 for runtime metadata.
+	/// Version 10 for runtime metadata.
 	#[cfg(feature = "v10")]
-    V10(v10::RuntimeMetadataV10),
+	V10(v10::RuntimeMetadataV10),
 	/// Version 10 for runtime metadata, as raw encoded bytes.
-    #[cfg(not(feature = "v10"))]
-    V10(OpaqueMetadata),
-    
-    /// Version 11 for runtime metadata.
-    #[cfg(feature = "v11")]
-    V11(v11::RuntimeMetadataV11),
-    /// Version 11 for runtime metadata, as raw encoded bytes.
-    #[cfg(not(feature = "v11"))]
-    V11(OpaqueMetadata),
+	#[cfg(not(feature = "v10"))]
+	V10(OpaqueMetadata),
 
-    /// Version 12 for runtime metadata
-    #[cfg(feature = "v12")]
+	/// Version 11 for runtime metadata.
+	#[cfg(feature = "v11")]
+	V11(v11::RuntimeMetadataV11),
+	/// Version 11 for runtime metadata, as raw encoded bytes.
+	#[cfg(not(feature = "v11"))]
+	V11(OpaqueMetadata),
+
+	/// Version 12 for runtime metadata
+	#[cfg(feature = "v12")]
 	V12(v12::RuntimeMetadataV12),
 	/// Version 12 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v12"))]

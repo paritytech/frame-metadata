@@ -39,7 +39,7 @@ pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
 /// All the metadata about a function.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct FunctionMetadata {
 	pub name: DecodeDifferentStr,
 	pub arguments: DecodeDifferentArray<FunctionArgumentMetadata>,
@@ -48,7 +48,7 @@ pub struct FunctionMetadata {
 
 /// All the metadata about a function argument.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct FunctionArgumentMetadata {
 	pub name: DecodeDifferentStr,
 	pub ty: DecodeDifferentStr,
@@ -59,13 +59,15 @@ pub struct FunctionArgumentMetadata {
 #[cfg_attr(feature = "std", derive(Decode, Serialize))]
 pub struct OuterEventMetadata {
 	pub name: DecodeDifferentStr,
-	pub events:
-		DecodeDifferentArray<(&'static str, FnEncode<&'static [EventMetadata]>), (StringBuf, Vec<EventMetadata>)>,
+	pub events: DecodeDifferentArray<
+		(&'static str, FnEncode<&'static [EventMetadata]>),
+		(StringBuf, Vec<EventMetadata>),
+	>,
 }
 
 /// All the metadata about an event.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct EventMetadata {
 	pub name: DecodeDifferentStr,
 	pub arguments: DecodeDifferentArray<&'static str, StringBuf>,
@@ -74,7 +76,7 @@ pub struct EventMetadata {
 
 /// All the metadata about one storage entry.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct StorageEntryMetadata {
 	pub name: DecodeDifferentStr,
 	pub modifier: StorageEntryModifier,
@@ -85,7 +87,7 @@ pub struct StorageEntryMetadata {
 
 /// All the metadata about one module constant.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct ModuleConstantMetadata {
 	pub name: DecodeDifferentStr,
 	pub ty: DecodeDifferentStr,
@@ -95,7 +97,7 @@ pub struct ModuleConstantMetadata {
 
 /// All the metadata about a module error.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct ErrorMetadata {
 	pub name: DecodeDifferentStr,
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
@@ -152,15 +154,15 @@ impl serde::Serialize for DefaultByteGetter {
 	}
 }
 
-impl rstd::fmt::Debug for DefaultByteGetter {
-	fn fmt(&self, f: &mut rstd::fmt::Formatter) -> rstd::fmt::Result {
+impl core::fmt::Debug for DefaultByteGetter {
+	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
 		self.0.default_byte().fmt(f)
 	}
 }
 
 /// Hasher used by storage maps
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub enum StorageHasher {
 	Blake2_128,
 	Blake2_256,
@@ -172,7 +174,7 @@ pub enum StorageHasher {
 
 /// A storage entry type.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub enum StorageEntryType {
 	Plain(DecodeDifferentStr),
 	Map {
@@ -192,7 +194,7 @@ pub enum StorageEntryType {
 
 /// A storage entry modifier.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub enum StorageEntryModifier {
 	Optional,
 	Default,
@@ -200,7 +202,7 @@ pub enum StorageEntryModifier {
 
 /// All metadata of the storage.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct StorageMetadata {
 	/// The common prefix used by all storage entries.
 	pub prefix: DecodeDifferent<&'static str, StringBuf>,
@@ -216,7 +218,7 @@ pub struct RuntimeMetadataV9 {
 
 /// All metadata about an runtime module.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize))]
+#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct ModuleMetadata {
 	pub name: DecodeDifferentStr,
 	pub storage: Option<DecodeDifferent<FnEncode<StorageMetadata>, StorageMetadata>>,
