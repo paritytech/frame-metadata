@@ -107,40 +107,40 @@ pub enum RuntimeMetadata {
 	V7(RuntimeMetadataDeprecated),
 
 	/// Version 8 for runtime metadata.
-	#[cfg(feature = "v8")]
+	#[cfg(any(feature = "v8", feature = "legacy"))]
 	V8(v8::RuntimeMetadataV8),
 	#[cfg(not(feature = "v8"))]
 	V8(OpaqueMetadata),
 
 	/// Version 9 for runtime metadata.
-	#[cfg(feature = "v9")]
+	#[cfg(any(feature = "v9", feature = "legacy"))]
 	V9(v9::RuntimeMetadataV9),
 	/// Version 9 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v9"))]
 	V9(OpaqueMetadata),
 
 	/// Version 10 for runtime metadata.
-	#[cfg(feature = "v10")]
+	#[cfg(any(feature = "v10", feature = "legacy"))]
 	V10(v10::RuntimeMetadataV10),
 	/// Version 10 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v10"))]
 	V10(OpaqueMetadata),
 
 	/// Version 11 for runtime metadata.
-	#[cfg(feature = "v11")]
+	#[cfg(any(feature = "v11", feature = "legacy"))]
 	V11(v11::RuntimeMetadataV11),
 	/// Version 11 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v11"))]
 	V11(OpaqueMetadata),
 
 	/// Version 12 for runtime metadata
-	#[cfg(feature = "v12")]
+	#[cfg(any(feature = "v12", feature = "legacy"))]
 	V12(v12::RuntimeMetadataV12),
 	/// Version 12 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v12"))]
 	V12(OpaqueMetadata),
 	/// Version 13 for runtime metadata.
-	#[cfg(feature = "v13")]
+	#[cfg(any(feature = "v13", feature = "legacy"))]
 	V13(v13::RuntimeMetadataV13),
 	/// Version 13 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v13"))]
