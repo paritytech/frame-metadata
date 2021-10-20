@@ -37,6 +37,9 @@ use codec::{Encode, Output};
 #[cfg(any(feature = "v12", feature = "v13", feature = "v11"))]
 pub mod decode_different;
 
+#[cfg(feature = "v10")]
+pub mod v10;
+
 #[cfg(feature = "v11")]
 pub mod v11;
 
@@ -93,8 +96,12 @@ pub enum RuntimeMetadata {
 	/// Version 9 for runtime metadata. No longer used.
 	V9(RuntimeMetadataDeprecated),
 	/// Version 10 for runtime metadata. No longer used.
-	V10(RuntimeMetadataDeprecated),
-	/// Version 11 for runtime metadata.
+	#[cfg(feature = "v10")]
+    V10(v10::RuntimeMetadataV10),
+	/// Version 10 for runtime metadata, as raw encoded bytes.
+    #[cfg(not(feature = "v10"))]
+    V11(OpaqueMetadata),
+    /// Version 11 for runtime metadata.
 	#[cfg(feature = "v11")]
     V11(v11::RuntimeMetadataV11),
     /// Version 11 for runtime metadata, as raw encoded bytes.
