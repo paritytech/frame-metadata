@@ -105,34 +105,29 @@ pub enum RuntimeMetadata {
 	V6(RuntimeMetadataDeprecated),
 	/// Version 7 for runtime metadata. No longer used.
 	V7(RuntimeMetadataDeprecated),
-
 	/// Version 8 for runtime metadata.
 	#[cfg(any(feature = "v8", feature = "legacy"))]
 	V8(v8::RuntimeMetadataV8),
 	#[cfg(not(feature = "v8"))]
 	V8(OpaqueMetadata),
-
 	/// Version 9 for runtime metadata.
 	#[cfg(any(feature = "v9", feature = "legacy"))]
 	V9(v9::RuntimeMetadataV9),
 	/// Version 9 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v9"))]
 	V9(OpaqueMetadata),
-
 	/// Version 10 for runtime metadata.
 	#[cfg(any(feature = "v10", feature = "legacy"))]
 	V10(v10::RuntimeMetadataV10),
 	/// Version 10 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v10"))]
 	V10(OpaqueMetadata),
-
 	/// Version 11 for runtime metadata.
 	#[cfg(any(feature = "v11", feature = "legacy"))]
 	V11(v11::RuntimeMetadataV11),
 	/// Version 11 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v11"))]
 	V11(OpaqueMetadata),
-
 	/// Version 12 for runtime metadata
 	#[cfg(any(feature = "v12", feature = "legacy"))]
 	V12(v12::RuntimeMetadataV12),
