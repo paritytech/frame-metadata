@@ -34,7 +34,6 @@ cfg_if::cfg_if! {
 	}
 }
 
-
 /// Curent prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
@@ -153,8 +152,8 @@ impl serde::Serialize for DefaultByteGetter {
 	}
 }
 
-impl sp_std::fmt::Debug for DefaultByteGetter {
-	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+impl rstd::fmt::Debug for DefaultByteGetter {
+	fn fmt(&self, f: &mut rstd::fmt::Formatter) -> rstd::fmt::Result {
 		self.0.default_byte().fmt(f)
 	}
 }
@@ -211,7 +210,7 @@ pub struct StorageMetadata {
 /// The metadata of a runtime.
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct RuntimeMetadataV10 {
+pub struct RuntimeMetadataV9 {
 	pub modules: DecodeDifferentArray<ModuleMetadata>,
 }
 
@@ -229,4 +228,3 @@ pub struct ModuleMetadata {
 
 type ODFnA<T> = Option<DFnA<T>>;
 type DFnA<T> = DecodeDifferent<FnEncode<&'static [T]>, Vec<T>>;
-
