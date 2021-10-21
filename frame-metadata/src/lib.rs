@@ -108,6 +108,7 @@ pub enum RuntimeMetadata {
 	/// Version 8 for runtime metadata.
 	#[cfg(any(feature = "v8", feature = "legacy"))]
 	V8(v8::RuntimeMetadataV8),
+	/// Version 8 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v8"))]
 	V8(OpaqueMetadata),
 	/// Version 9 for runtime metadata.
