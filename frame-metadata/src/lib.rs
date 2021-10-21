@@ -170,3 +170,59 @@ impl Decode for RuntimeMetadataDeprecated {
 		Err("Decoding is not supported".into())
 	}
 }
+
+#[cfg(test)]
+mod test {
+	use super::*;
+	use std::fs;
+
+	fn load_metadata(version: u32) -> Vec<u8> {
+		println!(
+			"Curent dir: {}",
+			std::env::current_dir().unwrap().to_str().unwrap()
+		);
+		fs::read(format!("./test_data/ksm_metadata_v{}.bin", version)).unwrap()
+	}
+
+	#[test]
+	fn should_decode_metadatav9() {
+		let meta: RuntimeMetadataPrefixed =
+			Decode::decode(&mut load_metadata(9).as_slice()).unwrap();
+		assert!(matches!(meta.1, RuntimeMetadata::V9(_)));
+	}
+
+	#[test]
+	fn should_decode_metadatav10() {
+		let meta: RuntimeMetadataPrefixed =
+			Decode::decode(&mut load_metadata(10).as_slice()).unwrap();
+		assert!(matches!(meta.1, RuntimeMetadata::V10(_)));
+	}
+
+	#[test]
+	fn should_decode_metadatav11() {
+		let meta: RuntimeMetadataPrefixed =
+			Decode::decode(&mut load_metadata(11).as_slice()).unwrap();
+		assert!(matches!(meta.1, RuntimeMetadata::V11(_)));
+	}
+
+	#[test]
+	fn should_decode_metadatav12() {
+		let meta: RuntimeMetadataPrefixed =
+			Decode::decode(&mut load_metadata(12).as_slice()).unwrap();
+		assert!(matches!(meta.1, RuntimeMetadata::V12(_)));
+	}
+
+	#[test]
+	fn should_decode_metadatav13() {
+		let meta: RuntimeMetadataPrefixed =
+			Decode::decode(&mut load_metadata(13).as_slice()).unwrap();
+		assert!(matches!(meta.1, RuntimeMetadata::V13(_)));
+	}
+
+	#[test]
+	fn should_decode_metadatav14() {
+		let meta: RuntimeMetadataPrefixed =
+			Decode::decode(&mut load_metadata(14).as_slice()).unwrap();
+		assert!(matches!(meta.1, RuntimeMetadata::V14(_)));
+	}
+}
