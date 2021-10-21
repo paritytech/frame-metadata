@@ -177,10 +177,6 @@ mod test {
 	use std::fs;
 
 	fn load_metadata(version: u32) -> Vec<u8> {
-		println!(
-			"Curent dir: {}",
-			std::env::current_dir().unwrap().to_str().unwrap()
-		);
 		fs::read(format!("./test_data/ksm_metadata_v{}.bin", version)).unwrap()
 	}
 
