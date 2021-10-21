@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Metadata Version 13. Networks like Kusama contain this version on-chain. 
+//! Metadata Version 13. Networks like Kusama contain this version on-chain.
 //! Chains old enough to contain this metadata need a way to decode it.
 
 use crate::decode_different::*;
