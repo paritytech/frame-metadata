@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Metadata Version 12. Networks like Kusama contain this version on-chain.
+//! Metadata Version 10. Networks like Kusama contain this version on-chain.
 //! Chains old enough to contain this metadata need a way to decode it.
 
 use crate::decode_different::*;
@@ -37,10 +37,10 @@ cfg_if::cfg_if! {
 	}
 }
 
-/// Current prefix of metadata
+/// Curent prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
-/// Metadata about a function.
+/// All the metadata about a function.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct FunctionMetadata {
@@ -49,7 +49,7 @@ pub struct FunctionMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// Metadata about a function argument.
+/// All the metadata about a function argument.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct FunctionArgumentMetadata {
@@ -57,7 +57,7 @@ pub struct FunctionArgumentMetadata {
 	pub ty: DecodeDifferentStr,
 }
 
-/// Metadata about an outer event.
+/// All the metadata about an outer event.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct OuterEventMetadata {
@@ -68,7 +68,7 @@ pub struct OuterEventMetadata {
 	>,
 }
 
-/// Metadata about an event.
+/// All the metadata about an event.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct EventMetadata {
@@ -77,7 +77,7 @@ pub struct EventMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// Metadata about one storage entry.
+/// All the metadata about one storage entry.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct StorageEntryMetadata {
@@ -88,7 +88,7 @@ pub struct StorageEntryMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// Metadata about one module constant.
+/// All the metadata about one module constant.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct ModuleConstantMetadata {
@@ -98,7 +98,7 @@ pub struct ModuleConstantMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// Metadata about a module error.
+/// All the metadata about a module error.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct ErrorMetadata {
@@ -106,7 +106,7 @@ pub struct ErrorMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// Metadata about errors in a module.
+/// All the metadata about errors in a module.
 pub trait ModuleErrorMetadata {
 	fn metadata() -> &'static [ErrorMetadata];
 }
@@ -173,7 +173,6 @@ pub enum StorageHasher {
 	Twox128,
 	Twox256,
 	Twox64Concat,
-	Identity,
 }
 
 /// A storage entry type.
@@ -185,8 +184,7 @@ pub enum StorageEntryType {
 		hasher: StorageHasher,
 		key: DecodeDifferentStr,
 		value: DecodeDifferentStr,
-		// is_linked flag previously, unused now to keep backwards compat
-		unused: bool,
+		is_linked: bool,
 	},
 	DoubleMap {
 		hasher: StorageHasher,
@@ -214,24 +212,11 @@ pub struct StorageMetadata {
 	pub entries: DecodeDifferent<&'static [StorageEntryMetadata], Vec<StorageEntryMetadata>>,
 }
 
-/// Metadata of the extrinsic used by the runtime.
-#[derive(Eq, Encode, PartialEq)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct ExtrinsicMetadata {
-	/// Extrinsic version.
-	pub version: u8,
-	/// The signed extensions in the order they appear in the extrinsic.
-	pub signed_extensions: Vec<DecodeDifferentStr>,
-}
-
 /// The metadata of a runtime.
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct RuntimeMetadataV12 {
-	/// Metadata of all the modules.
+pub struct RuntimeMetadataV10 {
 	pub modules: DecodeDifferentArray<ModuleMetadata>,
-	/// Metadata of the extrinsic.
-	pub extrinsic: ExtrinsicMetadata,
 }
 
 /// All metadata about an runtime module.
@@ -244,9 +229,6 @@ pub struct ModuleMetadata {
 	pub event: ODFnA<EventMetadata>,
 	pub constants: DFnA<ModuleConstantMetadata>,
 	pub errors: DFnA<ErrorMetadata>,
-	/// Define the index of the module, this index will be used for the encoding of module event,
-	/// call and origin variants.
-	pub index: u8,
 }
 
 type ODFnA<T> = Option<DFnA<T>>;

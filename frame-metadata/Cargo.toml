@@ -20,8 +20,13 @@ serde = { version = "1.0.101", optional = true, features = ["derive"] }
 
 [features]
 default = ["std", "v14"]
+v8  = []
+v9  = []
+v10 = []
+v11 = []
 v12 = []
 v13 = []
+legacy = ["v13", "v12", "v11", "v10", "v9", "v8"]
 v14 = ["scale-info"]
 std = [
 	"codec/std",

@@ -34,8 +34,28 @@ cfg_if::cfg_if! {
 
 use codec::{Encode, Output};
 
-#[cfg(any(feature = "v12", feature = "v13"))]
+#[cfg(any(
+	feature = "v13",
+	feature = "v12",
+	feature = "v11",
+	feature = "v10",
+	feature = "v9",
+	feature = "v8",
+	feature = "legacy"
+))]
 pub mod decode_different;
+
+#[cfg(feature = "v8")]
+pub mod v8;
+
+#[cfg(feature = "v9")]
+pub mod v9;
+
+#[cfg(feature = "v10")]
+pub mod v10;
+
+#[cfg(feature = "v11")]
+pub mod v11;
 
 #[cfg(feature = "v12")]
 pub mod v12;
@@ -85,22 +105,38 @@ pub enum RuntimeMetadata {
 	V6(RuntimeMetadataDeprecated),
 	/// Version 7 for runtime metadata. No longer used.
 	V7(RuntimeMetadataDeprecated),
-	/// Version 8 for runtime metadata. No longer used.
-	V8(RuntimeMetadataDeprecated),
-	/// Version 9 for runtime metadata. No longer used.
-	V9(RuntimeMetadataDeprecated),
-	/// Version 10 for runtime metadata. No longer used.
-	V10(RuntimeMetadataDeprecated),
-	/// Version 11 for runtime metadata. No longer used.
-	V11(RuntimeMetadataDeprecated),
+	/// Version 8 for runtime metadata.
+	#[cfg(any(feature = "v8", feature = "legacy"))]
+	V8(v8::RuntimeMetadataV8),
+	/// Version 8 for runtime metadata, as raw encoded bytes.
+	#[cfg(not(feature = "v8"))]
+	V8(OpaqueMetadata),
+	/// Version 9 for runtime metadata.
+	#[cfg(any(feature = "v9", feature = "legacy"))]
+	V9(v9::RuntimeMetadataV9),
+	/// Version 9 for runtime metadata, as raw encoded bytes.
+	#[cfg(not(feature = "v9"))]
+	V9(OpaqueMetadata),
+	/// Version 10 for runtime metadata.
+	#[cfg(any(feature = "v10", feature = "legacy"))]
+	V10(v10::RuntimeMetadataV10),
+	/// Version 10 for runtime metadata, as raw encoded bytes.
+	#[cfg(not(feature = "v10"))]
+	V10(OpaqueMetadata),
+	/// Version 11 for runtime metadata.
+	#[cfg(any(feature = "v11", feature = "legacy"))]
+	V11(v11::RuntimeMetadataV11),
+	/// Version 11 for runtime metadata, as raw encoded bytes.
+	#[cfg(not(feature = "v11"))]
+	V11(OpaqueMetadata),
 	/// Version 12 for runtime metadata
-	#[cfg(feature = "v12")]
+	#[cfg(any(feature = "v12", feature = "legacy"))]
 	V12(v12::RuntimeMetadataV12),
 	/// Version 12 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v12"))]
 	V12(OpaqueMetadata),
 	/// Version 13 for runtime metadata.
-	#[cfg(feature = "v13")]
+	#[cfg(any(feature = "v13", feature = "legacy"))]
 	V13(v13::RuntimeMetadataV13),
 	/// Version 13 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v13"))]
@@ -133,5 +169,57 @@ impl codec::EncodeLike for RuntimeMetadataDeprecated {}
 impl Decode for RuntimeMetadataDeprecated {
 	fn decode<I: Input>(_input: &mut I) -> Result<Self, Error> {
 		Err("Decoding is not supported".into())
+	}
+}
+
+#[cfg(test)]
+mod test {
+	use super::*;
+	use std::fs;
+
+	fn load_metadata(version: u32) -> Vec<u8> {
+		fs::read(format!("./test_data/ksm_metadata_v{}.bin", version)).unwrap()
+	}
+
+	#[test]
+	fn should_decode_metadatav9() {
+		let meta: RuntimeMetadataPrefixed =
+			Decode::decode(&mut load_metadata(9).as_slice()).unwrap();
+		assert!(matches!(meta.1, RuntimeMetadata::V9(_)));
+	}
+
+	#[test]
+	fn should_decode_metadatav10() {
+		let meta: RuntimeMetadataPrefixed =
+			Decode::decode(&mut load_metadata(10).as_slice()).unwrap();
+		assert!(matches!(meta.1, RuntimeMetadata::V10(_)));
+	}
+
+	#[test]
+	fn should_decode_metadatav11() {
+		let meta: RuntimeMetadataPrefixed =
+			Decode::decode(&mut load_metadata(11).as_slice()).unwrap();
+		assert!(matches!(meta.1, RuntimeMetadata::V11(_)));
+	}
+
+	#[test]
+	fn should_decode_metadatav12() {
+		let meta: RuntimeMetadataPrefixed =
+			Decode::decode(&mut load_metadata(12).as_slice()).unwrap();
+		assert!(matches!(meta.1, RuntimeMetadata::V12(_)));
+	}
+
+	#[test]
+	fn should_decode_metadatav13() {
+		let meta: RuntimeMetadataPrefixed =
+			Decode::decode(&mut load_metadata(13).as_slice()).unwrap();
+		assert!(matches!(meta.1, RuntimeMetadata::V13(_)));
+	}
+
+	#[test]
+	fn should_decode_metadatav14() {
+		let meta: RuntimeMetadataPrefixed =
+			Decode::decode(&mut load_metadata(14).as_slice()).unwrap();
+		assert!(matches!(meta.1, RuntimeMetadata::V14(_)));
 	}
 }

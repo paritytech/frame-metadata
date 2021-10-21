@@ -15,8 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Metadata Version 12. Networks like Kusama contain this version on-chain.
-//! Chains old enough to contain this metadata need a way to decode it.
+//! Metadata Version 8. Chains old enough to contain this metadata need a way to decode it.
 
 use crate::decode_different::*;
 use codec::{Encode, Output};
@@ -37,29 +36,29 @@ cfg_if::cfg_if! {
 	}
 }
 
-/// Current prefix of metadata
+/// Curent prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
-/// Metadata about a function.
+/// All the metadata about a function.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub struct FunctionMetadata {
 	pub name: DecodeDifferentStr,
 	pub arguments: DecodeDifferentArray<FunctionArgumentMetadata>,
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// Metadata about a function argument.
+/// All the metadata about a function argument.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub struct FunctionArgumentMetadata {
 	pub name: DecodeDifferentStr,
 	pub ty: DecodeDifferentStr,
 }
 
-/// Metadata about an outer event.
+/// All the metadata about an outer event.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub struct OuterEventMetadata {
 	pub name: DecodeDifferentStr,
 	pub events: DecodeDifferentArray<
@@ -68,18 +67,18 @@ pub struct OuterEventMetadata {
 	>,
 }
 
-/// Metadata about an event.
+/// All the metadata about an event.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub struct EventMetadata {
 	pub name: DecodeDifferentStr,
 	pub arguments: DecodeDifferentArray<&'static str, StringBuf>,
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// Metadata about one storage entry.
+/// All the metadata about one storage entry.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub struct StorageEntryMetadata {
 	pub name: DecodeDifferentStr,
 	pub modifier: StorageEntryModifier,
@@ -88,9 +87,9 @@ pub struct StorageEntryMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// Metadata about one module constant.
+/// All the metadata about one module constant.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub struct ModuleConstantMetadata {
 	pub name: DecodeDifferentStr,
 	pub ty: DecodeDifferentStr,
@@ -98,15 +97,15 @@ pub struct ModuleConstantMetadata {
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// Metadata about a module error.
+/// All the metadata about a module error.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub struct ErrorMetadata {
 	pub name: DecodeDifferentStr,
 	pub documentation: DecodeDifferentArray<&'static str, StringBuf>,
 }
 
-/// Metadata about errors in a module.
+/// All the metadata about errors in a module.
 pub trait ModuleErrorMetadata {
 	fn metadata() -> &'static [ErrorMetadata];
 }
@@ -157,36 +156,34 @@ impl serde::Serialize for DefaultByteGetter {
 	}
 }
 
-impl core::fmt::Debug for DefaultByteGetter {
-	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+#[cfg(feature = "std")]
+impl std::fmt::Debug for DefaultByteGetter {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
 		self.0.default_byte().fmt(f)
 	}
 }
 
 /// Hasher used by storage maps
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub enum StorageHasher {
 	Blake2_128,
 	Blake2_256,
-	Blake2_128Concat,
 	Twox128,
 	Twox256,
 	Twox64Concat,
-	Identity,
 }
 
 /// A storage entry type.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub enum StorageEntryType {
 	Plain(DecodeDifferentStr),
 	Map {
 		hasher: StorageHasher,
 		key: DecodeDifferentStr,
 		value: DecodeDifferentStr,
-		// is_linked flag previously, unused now to keep backwards compat
-		unused: bool,
+		is_linked: bool,
 	},
 	DoubleMap {
 		hasher: StorageHasher,
@@ -199,7 +196,7 @@ pub enum StorageEntryType {
 
 /// A storage entry modifier.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub enum StorageEntryModifier {
 	Optional,
 	Default,
@@ -207,36 +204,26 @@ pub enum StorageEntryModifier {
 
 /// All metadata of the storage.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub struct StorageMetadata {
 	/// The common prefix used by all storage entries.
 	pub prefix: DecodeDifferent<&'static str, StringBuf>,
 	pub entries: DecodeDifferent<&'static [StorageEntryMetadata], Vec<StorageEntryMetadata>>,
 }
 
-/// Metadata of the extrinsic used by the runtime.
-#[derive(Eq, Encode, PartialEq)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct ExtrinsicMetadata {
-	/// Extrinsic version.
-	pub version: u8,
-	/// The signed extensions in the order they appear in the extrinsic.
-	pub signed_extensions: Vec<DecodeDifferentStr>,
-}
-
 /// The metadata of a runtime.
 #[derive(Eq, Encode, PartialEq)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
-pub struct RuntimeMetadataV12 {
-	/// Metadata of all the modules.
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
+pub struct RuntimeMetadataV8 {
 	pub modules: DecodeDifferentArray<ModuleMetadata>,
-	/// Metadata of the extrinsic.
-	pub extrinsic: ExtrinsicMetadata,
 }
+
+/// The latest version of the metadata.
+pub type RuntimeMetadataLastVersion = RuntimeMetadataV8;
 
 /// All metadata about an runtime module.
 #[derive(Clone, PartialEq, Eq, Encode)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "std", derive(Decode, Debug, Serialize))]
 pub struct ModuleMetadata {
 	pub name: DecodeDifferentStr,
 	pub storage: Option<DecodeDifferent<FnEncode<StorageMetadata>, StorageMetadata>>,
@@ -244,9 +231,6 @@ pub struct ModuleMetadata {
 	pub event: ODFnA<EventMetadata>,
 	pub constants: DFnA<ModuleConstantMetadata>,
 	pub errors: DFnA<ErrorMetadata>,
-	/// Define the index of the module, this index will be used for the encoding of module event,
-	/// call and origin variants.
-	pub index: u8,
 }
 
 type ODFnA<T> = Option<DFnA<T>>;
