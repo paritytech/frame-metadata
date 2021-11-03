@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [14.1.0] - 2021-11-03
 - Add metadata version v8-v11 [#28](https://github.com/paritytech/frame-metadata/pull/28)
+- Combine Map/NMap/DoubleMap StorageEntryTypes [#23](https://github.com/paritytech/frame-metadata/pull/23)
 
 ## [14.0.0] - 2021-09-01
 
