@@ -552,7 +552,7 @@ pub struct ModuleMetadata {
 	pub name: DecodeDifferentStr,
 	/// Optional storage items.
 	pub storage: Option<DecodeDifferent<FnEncode<StorageMetadata>, StorageMetadata>>,
-	/// Public calls (dispatchables) to the pallet.
+	/// [`Option`] of public calls (dispatchables) to the pallet. See [`ODFnA`].
 	pub calls: ODFnA<FunctionMetadata>,
 	/// Events the pallet may generate.
 	pub event: ODFnA<EventMetadata>,
