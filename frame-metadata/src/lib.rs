@@ -554,7 +554,7 @@ pub struct ModuleMetadata {
 	pub storage: Option<DecodeDifferent<FnEncode<StorageMetadata>, StorageMetadata>>,
 	/// [`Option`] of public calls (dispatchables) to the pallet. See [`ODFnA`].
 	pub calls: ODFnA<FunctionMetadata>,
-	/// Events the pallet may generate.
+	/// [`Option`] of events the pallet may generate. See [`ODFnA`].
 	pub event: ODFnA<EventMetadata>,
 	/// Constant values defined on the module (public parameters).
 	pub constants: DFnA<ModuleConstantMetadata>,
