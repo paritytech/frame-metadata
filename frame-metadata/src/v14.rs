@@ -33,6 +33,7 @@ use scale_info::{
 /// Current prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
+/// Latest runtime metadata
 pub type RuntimeMetadataLastVersion = RuntimeMetadataV14;
 
 impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
@@ -45,6 +46,7 @@ impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct RuntimeMetadataV14 {
+	/// Type registry containing all types used in the metadata.
 	pub types: PortableRegistry,
 	/// Metadata of all the pallets.
 	pub pallets: Vec<PalletMetadata<PortableForm>>,
@@ -55,6 +57,7 @@ pub struct RuntimeMetadataV14 {
 }
 
 impl RuntimeMetadataV14 {
+	/// Create a new instance of [`RuntimeMetadataV14`].
 	pub fn new(
 		pallets: Vec<PalletMetadata>,
 		extrinsic: ExtrinsicMetadata,
@@ -137,11 +140,17 @@ impl IntoPortable for SignedExtensionMetadata {
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
 pub struct PalletMetadata<T: Form = MetaForm> {
+	/// Pallet name.
 	pub name: T::String,
+	/// Pallet storage metadata.
 	pub storage: Option<PalletStorageMetadata<T>>,
+	/// Pallet calls metadata.
 	pub calls: Option<PalletCallMetadata<T>>,
+	/// Pallet event metadata.
 	pub event: Option<PalletEventMetadata<T>>,
+	/// Pallet constants metadata.
 	pub constants: Vec<PalletConstantMetadata<T>>,
+	/// Pallet error metadata.
 	pub error: Option<PalletErrorMetadata<T>>,
 	/// Define the index of the pallet, this index will be used for the encoding of pallet event,
 	/// call and origin variants.
@@ -174,6 +183,7 @@ impl IntoPortable for PalletMetadata {
 pub struct PalletStorageMetadata<T: Form = MetaForm> {
 	/// The common prefix used by all storage entries.
 	pub prefix: T::String,
+	/// Metadata for all storage entries.
 	pub entries: Vec<StorageEntryMetadata<T>>,
 }
 
@@ -196,10 +206,15 @@ impl IntoPortable for PalletStorageMetadata {
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
 pub struct StorageEntryMetadata<T: Form = MetaForm> {
+	/// Variable name of the storage entry.
 	pub name: T::String,
+	/// An `Option` modifier of that storage entry.
 	pub modifier: StorageEntryModifier,
+	/// Type of the value stored in the entry.
 	pub ty: StorageEntryType<T>,
+	/// Default value (SCALE encoded).
 	pub default: Vec<u8>,
+	/// Storage entry documentation.
 	pub docs: Vec<T::String>,
 }
 
@@ -217,11 +232,14 @@ impl IntoPortable for StorageEntryMetadata {
 	}
 }
 
-/// A storage entry modifier.
+/// A storage entry modifier indicating if a storage entry has a default value (`Default`) or not
+/// ('Optional').
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub enum StorageEntryModifier {
+	/// The storage entry is optional.
 	Optional,
+	/// The storage entry has a default value.
 	Default,
 }
 
@@ -229,16 +247,23 @@ pub enum StorageEntryModifier {
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub enum StorageHasher {
+	/// 128-bit Blake2 hash.
 	Blake2_128,
+	/// 256-bit Blake2 hash.
 	Blake2_256,
+	/// Multiple 128-bit Blake2 hashes concatenated.
 	Blake2_128Concat,
+	/// 128-bit XX hash.
 	Twox128,
+	/// 256-bit XX hash.
 	Twox256,
+	/// Multiple 64-bit XX hashes concatenated.
 	Twox64Concat,
+	/// Identity hashing (no hashing).
 	Identity,
 }
 
-/// A storage entry type.
+/// A type of storage value.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
@@ -246,7 +271,9 @@ pub enum StorageHasher {
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
 pub enum StorageEntryType<T: Form = MetaForm> {
+	/// Plain storage entry (just the value).
 	Plain(T::Type),
+	/// A storage map.
 	Map {
 		/// One or more hashers, should be one hasher per key element.
 		hashers: Vec<StorageHasher>,
@@ -304,10 +331,11 @@ impl From<MetaType> for PalletCallMetadata {
 	}
 }
 
-/// Metadata about the pallet event type.
+/// Metadata about the pallet Event type.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct PalletEventMetadata<T: Form = MetaForm> {
+	/// The Event type.
 	pub ty: T::Type,
 }
 
@@ -335,9 +363,13 @@ impl From<MetaType> for PalletEventMetadata {
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
 pub struct PalletConstantMetadata<T: Form = MetaForm> {
+	/// Name of the pallet constant.
 	pub name: T::String,
+	/// Type of the pallet constant.
 	pub ty: T::Type,
+	/// Value stored in the constant (SCALE encoded).
 	pub value: Vec<u8>,
+	/// Documentation of the constant.
 	pub docs: Vec<T::String>,
 }
 

@@ -18,6 +18,8 @@
 //! Metadata Version 11. Networks like Kusama contain this version on-chain.
 //! Chains old enough to contain this metadata need a way to decode it.
 
+#![allow(missing_docs)]
+
 use crate::decode_different::*;
 use codec::{Encode, Output};
 
