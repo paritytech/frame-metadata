@@ -197,7 +197,11 @@ pub enum StorageEntryType {
 	},
 }
 
-/// A storage entry modifier.
+/// A storage entry modifier indicates how a storage entry is returned when fetched and what the value will be if the key is not present.
+/// Specifically this refers to the "return type" when fetching a storage entry, and what the value will be if the key is not present.
+///
+/// `Optional` means you should expect an `Option<T>`, with `None` returned if the key is not present.
+/// `Default` means you should expect a `T` with the default value of default if the key is not present.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub enum StorageEntryModifier {

@@ -232,14 +232,17 @@ impl IntoPortable for StorageEntryMetadata {
 	}
 }
 
-/// A storage entry modifier indicating if a storage entry has a default value (`Default`) or not
-/// ('Optional').
+/// A storage entry modifier indicates how a storage entry is returned when fetched and what the value will be if the key is not present.
+/// Specifically this refers to the "return type" when fetching a storage entry, and what the value will be if the key is not present.
+///
+/// `Optional` means you should expect an `Option<T>`, with `None` returned if the key is not present.
+/// `Default` means you should expect a `T` with the default value of default if the key is not present.
 #[derive(Clone, PartialEq, Eq, Encode)]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub enum StorageEntryModifier {
-	/// The storage entry is optional.
+	/// The storage entry returns an `Option<T>`, with `None` if the key is not present.
 	Optional,
-	/// The storage entry has a default value.
+	/// The storage entry returns `T::Default` if the key is not present.
 	Default,
 }
 
