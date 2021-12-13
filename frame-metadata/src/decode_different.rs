@@ -20,6 +20,7 @@ use codec::{Encode, Output};
 cfg_if::cfg_if! {
 	if #[cfg(feature = "std")] {
 		use codec::{Decode, Error, Input};
+		/// On `std` the `StringBuf` used by [`DecodeDifferent`] is just a `String`.
 		pub type StringBuf = String;
 	} else {
 		extern crate alloc;
@@ -41,7 +42,9 @@ where
 	B: 'static,
 	O: 'static,
 {
+	/// Encodable variant of the value (doesn't need to be decodeable).
 	Encode(B),
+	/// Encodable & decodeable variant of the value.
 	Decoded(O),
 }
 
@@ -123,8 +126,10 @@ where
 	}
 }
 
+/// An array type that decodes as a `Vec`.
 pub type DecodeDifferentArray<B, O = B> = DecodeDifferent<&'static [B], Vec<O>>;
 
+/// A string type that decodes as a [`StringBuf`].
 pub type DecodeDifferentStr = DecodeDifferent<&'static str, StringBuf>;
 
 /// Newtype wrapper for support encoding functions (actual the result of the function).

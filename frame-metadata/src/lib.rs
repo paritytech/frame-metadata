@@ -18,6 +18,7 @@
 //! Decodable variant of the RuntimeMetadata.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![warn(missing_docs)]
 
 cfg_if::cfg_if! {
 	if #[cfg(feature = "std")] {
@@ -34,6 +35,7 @@ cfg_if::cfg_if! {
 
 use codec::{Encode, Output};
 
+/// A type that decodes to a different type than it encodes.
 #[cfg(any(
 	feature = "v13",
 	feature = "v12",
@@ -45,24 +47,31 @@ use codec::{Encode, Output};
 ))]
 pub mod decode_different;
 
+/// Metadata v8
 #[cfg(feature = "v8")]
 pub mod v8;
 
+/// Metadata v9
 #[cfg(feature = "v9")]
 pub mod v9;
 
+/// Metadata v10
 #[cfg(feature = "v10")]
 pub mod v10;
 
+/// Metadata v11
 #[cfg(feature = "v11")]
 pub mod v11;
 
+/// Metadata v12
 #[cfg(feature = "v12")]
 pub mod v12;
 
+/// Metadata v13
 #[cfg(feature = "v13")]
 pub mod v13;
 
+/// Metadata v14
 #[cfg(feature = "v14")]
 pub mod v14;
 
