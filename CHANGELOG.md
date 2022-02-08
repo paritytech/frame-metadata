@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update edition to 2021
-- Update `scale-info` to v2.0.0 and `parity-scale-codec` to v3.0.0 [#35](https://github.com/paritytech/frame-metadata/pull/30)
+- Update `scale-info` to v2.0.0 and `parity-scale-codec` to v3.0.0 [#35](https://github.com/paritytech/frame-metadata/pull/35)
 
 ## [14.2.0] - 2021-11-04
 
