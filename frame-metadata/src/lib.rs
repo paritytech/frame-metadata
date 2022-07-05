@@ -19,15 +19,33 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![warn(missing_docs)]
+#[cfg(all(
+	feature = "full_derive",
+	any(
+		feature = "v13",
+		feature = "v12",
+		feature = "v11",
+		feature = "v10",
+		feature = "v9",
+		feature = "v8",
+		feature = "legacy"
+	),
+	not(feature = "std")
+))]
+compile_error!("full_derive for metadata prior to v14 requires std!");
 
 cfg_if::cfg_if! {
-	if #[cfg(feature = "std")] {
+	if #[cfg(feature = "full_derive")] {
 		use codec::{Decode, Error, Input};
 		use serde::{
 			Deserialize,
 			Serialize,
 		};
-	} else {
+	}
+}
+
+cfg_if::cfg_if! {
+	if #[cfg(not(feature = "std"))] {
 		extern crate alloc;
 		use alloc::vec::Vec;
 	}
@@ -83,7 +101,7 @@ pub use self::v14::*;
 
 /// Metadata prefixed by a u32 for reserved usage
 #[derive(Eq, Encode, PartialEq)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "full_derive", derive(Decode, Serialize, Debug))]
 pub struct RuntimeMetadataPrefixed(pub u32, pub RuntimeMetadata);
 
 impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
@@ -96,7 +114,7 @@ impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
 /// The version ID encoded/decoded through
 /// the enum nature of `RuntimeMetadata`.
 #[derive(Eq, Encode, PartialEq)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "full_derive", derive(Decode, Serialize, Debug))]
 pub enum RuntimeMetadata {
 	/// Unused; enum filler.
 	V0(RuntimeMetadataDeprecated),
@@ -183,12 +201,12 @@ impl RuntimeMetadata {
 
 /// Stores the encoded `RuntimeMetadata` as raw bytes.
 #[derive(Encode, Eq, PartialEq)]
-#[cfg_attr(feature = "std", derive(Decode, Serialize, Deserialize, Debug))]
+#[cfg_attr(feature = "full_derive", derive(Decode, Serialize, Deserialize, Debug))]
 pub struct OpaqueMetadata(pub Vec<u8>);
 
 /// Enum that should fail.
 #[derive(Eq, PartialEq)]
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Debug))]
+#[cfg_attr(feature = "full_derive", derive(Serialize, Deserialize, Debug))]
 pub enum RuntimeMetadataDeprecated {}
 
 impl Encode for RuntimeMetadataDeprecated {
@@ -197,7 +215,7 @@ impl Encode for RuntimeMetadataDeprecated {
 
 impl codec::EncodeLike for RuntimeMetadataDeprecated {}
 
-#[cfg(feature = "std")]
+#[cfg(feature = "full_derive")]
 impl Decode for RuntimeMetadataDeprecated {
 	fn decode<I: Input>(_input: &mut I) -> Result<Self, Error> {
 		Err("Decoding is not supported".into())
