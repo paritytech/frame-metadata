@@ -35,3 +35,4 @@ std = [
 	"scale-info/decode",
 	"serde",
 ]
+type-info = ["scale-info/dogfood"]

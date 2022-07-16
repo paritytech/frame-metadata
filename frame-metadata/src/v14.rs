@@ -29,6 +29,8 @@ use scale_info::{
 	form::{Form, MetaForm, PortableForm},
 	IntoPortable, MetaType, PortableRegistry, Registry,
 };
+#[cfg(feature = "type-info")]
+use scale_info::TypeInfo;
 
 /// Current prefix of metadata
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
@@ -44,6 +46,7 @@ impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 
 /// The metadata of a runtime.
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct RuntimeMetadataV14 {
 	/// Type registry containing all types used in the metadata.
@@ -78,6 +81,7 @@ impl RuntimeMetadataV14 {
 
 /// Metadata of the extrinsic used by the runtime.
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
 	feature = "std",
@@ -106,6 +110,7 @@ impl IntoPortable for ExtrinsicMetadata {
 
 /// Metadata of an extrinsic's signed extension.
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
 	feature = "std",
@@ -134,6 +139,7 @@ impl IntoPortable for SignedExtensionMetadata {
 
 /// All metadata about an runtime pallet.
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
 	feature = "std",
@@ -175,6 +181,7 @@ impl IntoPortable for PalletMetadata {
 
 /// All metadata of the pallet's storage.
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
 	feature = "std",
@@ -200,6 +207,7 @@ impl IntoPortable for PalletStorageMetadata {
 
 /// Metadata about one storage entry.
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
 	feature = "std",
@@ -238,6 +246,7 @@ impl IntoPortable for StorageEntryMetadata {
 /// `Optional` means you should expect an `Option<T>`, with `None` returned if the key is not present.
 /// `Default` means you should expect a `T` with the default value of default if the key is not present.
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub enum StorageEntryModifier {
 	/// The storage entry returns an `Option<T>`, with `None` if the key is not present.
@@ -248,6 +257,7 @@ pub enum StorageEntryModifier {
 
 /// Hasher used by storage maps
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub enum StorageHasher {
 	/// 128-bit Blake2 hash.
@@ -268,6 +278,7 @@ pub enum StorageHasher {
 
 /// A type of storage value.
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
 	feature = "std",
@@ -308,6 +319,7 @@ impl IntoPortable for StorageEntryType {
 
 /// Metadata for all calls in a pallet
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
 	feature = "std",
@@ -336,6 +348,7 @@ impl From<MetaType> for PalletCallMetadata {
 
 /// Metadata about the pallet Event type.
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 pub struct PalletEventMetadata<T: Form = MetaForm> {
 	/// The Event type.
@@ -360,6 +373,7 @@ impl From<MetaType> for PalletEventMetadata {
 
 /// Metadata about one pallet constant.
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(
 	feature = "std",
@@ -391,6 +405,7 @@ impl IntoPortable for PalletConstantMetadata {
 
 /// Metadata about a pallet error.
 #[derive(Clone, PartialEq, Eq, Encode)]
+#[cfg_attr(feature = "type-info", derive(TypeInfo))]
 #[cfg_attr(feature = "std", derive(Decode, Serialize, Debug))]
 #[cfg_attr(feature = "std", serde(bound(serialize = "T::Type: Serialize")))]
 pub struct PalletErrorMetadata<T: Form = MetaForm> {
