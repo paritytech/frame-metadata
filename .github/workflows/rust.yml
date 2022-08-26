@@ -18,17 +18,17 @@ jobs:
       RUST_BACKTRACE:              full
     steps:
       - name:                      Cancel Previous Runs
-        uses:                      styfle/cancel-workflow-action@0.4.1
+        uses:                      styfle/cancel-workflow-action@bb6001c4ea612bf59c3abfc4756fbceee4f870c7 # 0.10.0
         with:
           access_token:            ${{ github.token }}
       - name:                      Checkout sources & submodules
-        uses:                      actions/checkout@master
+        uses:                      actions/checkout@v3
         with:
           fetch-depth:             5
           submodules:              recursive
 ## Check Stage
       - name:                      Checking rust-stable
-        uses:                      actions-rs/cargo@master
+        uses:                      actions-rs/cargo@v1
         with:
           command:                 check
           toolchain:               stable
@@ -36,7 +36,7 @@ jobs:
 
 ## Test Stage
       - name:                      Testing rust-stable
-        uses:                      actions-rs/cargo@master
+        uses:                      actions-rs/cargo@v1
         with:
           command:                 test
           toolchain:               stable
@@ -44,7 +44,7 @@ jobs:
 
 ## Build Stage
       - name:                      Building rust-stable
-        uses:                      actions-rs/cargo@master
+        uses:                      actions-rs/cargo@v1
         if:                        github.ref == 'refs/heads/master'
         with:
           command:                 build
@@ -58,11 +58,11 @@ jobs:
       RUST_BACKTRACE:              full
     steps:
       - name:                      Cancel Previous Runs
-        uses:                      styfle/cancel-workflow-action@0.4.1
+        uses:                      styfle/cancel-workflow-action@bb6001c4ea612bf59c3abfc4756fbceee4f870c7 # 0.10.0
         with:
           access_token:            ${{ github.token }}
       - name:                      Checkout sources & submodules
-        uses:                      actions/checkout@master
+        uses:                      actions/checkout@v3
         with:
           fetch-depth:             5
           submodules:              recursive
@@ -70,7 +70,7 @@ jobs:
         run:                       rustup target add wasm32-unknown-unknown --toolchain stable
 ## Check Stage
       - name:                      Checking wasm32
-        uses:                      actions-rs/cargo@master
+        uses:                      actions-rs/cargo@v1
         with:
           command:                 check
           toolchain:               stable
@@ -83,41 +83,41 @@ jobs:
       RUST_BACKTRACE:              full
     steps:
       - name:                      Cancel Previous Runs
-        uses:                      styfle/cancel-workflow-action@0.4.1
+        uses:                      styfle/cancel-workflow-action@bb6001c4ea612bf59c3abfc4756fbceee4f870c7 # 0.10.0
         with:
           access_token:            ${{ github.token }}
       - name:                      Checkout sources & submodules
-        uses:                      actions/checkout@master
+        uses:                      actions/checkout@v3
         with:
           fetch-depth:             5
           submodules:              recursive
 ## Check Stage
       - name:                      Checking without any features
-        uses:                      actions-rs/cargo@master
+        uses:                      actions-rs/cargo@v1
         with:
           command:                 check
           toolchain:               stable
           args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features
       - name:                      Checking v12
-        uses:                      actions-rs/cargo@master
+        uses:                      actions-rs/cargo@v1
         with:
           command:                 check
           toolchain:               stable
           args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v12
       - name:                      Checking v13
-        uses:                      actions-rs/cargo@master
+        uses:                      actions-rs/cargo@v1
         with:
           command:                 check
           toolchain:               stable
           args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v13
       - name:                      Checking v14
-        uses:                      actions-rs/cargo@master
+        uses:                      actions-rs/cargo@v1
         with:
           command:                 check
           toolchain:               stable
           args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v14
       - name:                      Checking all versions
-        uses:                      actions-rs/cargo@master
+        uses:                      actions-rs/cargo@v1
         with:
           command:                 check
           toolchain:               stable
