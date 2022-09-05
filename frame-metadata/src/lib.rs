@@ -35,10 +35,7 @@
 compile_error!("decode/serde_codec features prior to v14 require std");
 
 #[cfg(feature = "serde_codec")]
-use serde::{
-	Deserialize,
-	Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "decode")]
 use codec::{Decode, Error, Input};
