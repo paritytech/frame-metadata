@@ -20,7 +20,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![warn(missing_docs)]
 #[cfg(all(
-	feature = "full_derive",
+	any(feature = "decode", feature = "serde_codec"),
 	any(
 		feature = "v13",
 		feature = "v12",
@@ -32,17 +32,16 @@
 	),
 	not(feature = "std")
 ))]
-compile_error!("full_derive for metadata prior to v14 requires std!");
+compile_error!("decode/serde_codec features prior to v14 require std");
 
-cfg_if::cfg_if! {
-	if #[cfg(feature = "full_derive")] {
-		use codec::{Decode, Error, Input};
-		use serde::{
-			Deserialize,
-			Serialize,
-		};
-	}
-}
+#[cfg(feature = "serde_codec")]
+use serde::{
+	Deserialize,
+	Serialize,
+};
+
+#[cfg(feature = "decode")]
+use codec::{Decode, Error, Input};
 
 cfg_if::cfg_if! {
 	if #[cfg(not(feature = "std"))] {
@@ -101,7 +100,8 @@ pub use self::v14::*;
 
 /// Metadata prefixed by a u32 for reserved usage
 #[derive(Eq, Encode, PartialEq)]
-#[cfg_attr(feature = "full_derive", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_codec", derive(Serialize))]
 pub struct RuntimeMetadataPrefixed(pub u32, pub RuntimeMetadata);
 
 impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
@@ -114,7 +114,8 @@ impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
 /// The version ID encoded/decoded through
 /// the enum nature of `RuntimeMetadata`.
 #[derive(Eq, Encode, PartialEq)]
-#[cfg_attr(feature = "full_derive", derive(Decode, Serialize, Debug))]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_codec", derive(Serialize))]
 pub enum RuntimeMetadata {
 	/// Unused; enum filler.
 	V0(RuntimeMetadataDeprecated),
@@ -201,12 +202,13 @@ impl RuntimeMetadata {
 
 /// Stores the encoded `RuntimeMetadata` as raw bytes.
 #[derive(Encode, Eq, PartialEq)]
-#[cfg_attr(feature = "full_derive", derive(Decode, Serialize, Deserialize, Debug))]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_codec", derive(Serialize, Deserialize))]
 pub struct OpaqueMetadata(pub Vec<u8>);
 
 /// Enum that should fail.
 #[derive(Eq, PartialEq)]
-#[cfg_attr(feature = "full_derive", derive(Serialize, Deserialize, Debug))]
+#[cfg_attr(feature = "serde_codec", derive(Serialize, Deserialize))]
 pub enum RuntimeMetadataDeprecated {}
 
 impl Encode for RuntimeMetadataDeprecated {
@@ -215,7 +217,7 @@ impl Encode for RuntimeMetadataDeprecated {
 
 impl codec::EncodeLike for RuntimeMetadataDeprecated {}
 
-#[cfg(feature = "full_derive")]
+#[cfg(feature = "decode")]
 impl Decode for RuntimeMetadataDeprecated {
 	fn decode<I: Input>(_input: &mut I) -> Result<Self, Error> {
 		Err("Decoding is not supported".into())

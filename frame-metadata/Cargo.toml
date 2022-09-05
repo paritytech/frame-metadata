@@ -29,15 +29,18 @@ v13 = []
 legacy = ["v13", "v12", "v11", "v10", "v9", "v8"]
 v14 = ["scale-info"]
 
-full_derive = [
+# Serde support without relying on std features
+serde_codec = [
 	"scale-info/serde",
-	"scale-info/decode",
 	"serde",
 	"serde/alloc",
 ]
+# Scale decode support without relying on std features
+decode = ["scale-info/decode"]
 
 std = [
-	"full_derive",
+	"decode",
+	"serde_codec",
 	"codec/std",
 	"scale-info/std",
 	"serde/std",
