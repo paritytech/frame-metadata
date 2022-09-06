@@ -403,10 +403,7 @@ impl IntoPortable for PalletConstantMetadata {
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
-#[cfg_attr(
-	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize"))
-)]
+#[cfg_attr(feature = "serde_full", serde(bound(serialize = "T::Type: Serialize")))]
 pub struct PalletErrorMetadata<T: Form = MetaForm> {
 	/// The error type information.
 	pub ty: T::Type,
