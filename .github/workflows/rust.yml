@@ -122,4 +122,9 @@ jobs:
           command:                 check
           toolchain:               stable
           args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v12,v13,v14
-
+      - name:                      Checking fully featured wasm
+        uses:                      actions-rs/cargo@v1
+        with:
+          command:                 check
+          toolchain:               stable
+          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features decode,serde_full,v14

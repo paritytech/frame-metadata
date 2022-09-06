@@ -41,7 +41,7 @@ impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 }
 
 /// The metadata of a runtime.
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 pub struct RuntimeMetadataV14 {
@@ -76,7 +76,7 @@ impl RuntimeMetadataV14 {
 }
 
 /// Metadata of the extrinsic used by the runtime.
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
@@ -105,7 +105,7 @@ impl IntoPortable for ExtrinsicMetadata {
 }
 
 /// Metadata of an extrinsic's signed extension.
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
@@ -134,7 +134,7 @@ impl IntoPortable for SignedExtensionMetadata {
 }
 
 /// All metadata about an runtime pallet.
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
@@ -176,7 +176,7 @@ impl IntoPortable for PalletMetadata {
 }
 
 /// All metadata of the pallet's storage.
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
@@ -202,7 +202,7 @@ impl IntoPortable for PalletStorageMetadata {
 }
 
 /// Metadata about one storage entry.
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
@@ -241,7 +241,7 @@ impl IntoPortable for StorageEntryMetadata {
 ///
 /// `Optional` means you should expect an `Option<T>`, with `None` returned if the key is not present.
 /// `Default` means you should expect a `T` with the default value of default if the key is not present.
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 pub enum StorageEntryModifier {
@@ -252,7 +252,7 @@ pub enum StorageEntryModifier {
 }
 
 /// Hasher used by storage maps
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 pub enum StorageHasher {
@@ -273,7 +273,7 @@ pub enum StorageHasher {
 }
 
 /// A type of storage value.
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
@@ -314,7 +314,7 @@ impl IntoPortable for StorageEntryType {
 }
 
 /// Metadata for all calls in a pallet
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
@@ -343,7 +343,7 @@ impl From<MetaType> for PalletCallMetadata {
 }
 
 /// Metadata about the pallet Event type.
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 pub struct PalletEventMetadata<T: Form = MetaForm> {
@@ -368,7 +368,7 @@ impl From<MetaType> for PalletEventMetadata {
 }
 
 /// Metadata about one pallet constant.
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
@@ -400,7 +400,7 @@ impl IntoPortable for PalletConstantMetadata {
 }
 
 /// Metadata about a pallet error.
-#[derive(Clone, PartialEq, Eq, Encode)]
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(

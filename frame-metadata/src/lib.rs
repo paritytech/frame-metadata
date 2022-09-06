@@ -96,7 +96,7 @@ pub mod v14;
 pub use self::v14::*;
 
 /// Metadata prefixed by a u32 for reserved usage
-#[derive(Eq, Encode, PartialEq)]
+#[derive(Eq, Encode, PartialEq, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 pub struct RuntimeMetadataPrefixed(pub u32, pub RuntimeMetadata);
@@ -110,7 +110,7 @@ impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
 /// The metadata of a runtime.
 /// The version ID encoded/decoded through
 /// the enum nature of `RuntimeMetadata`.
-#[derive(Eq, Encode, PartialEq)]
+#[derive(Eq, Encode, PartialEq, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 pub enum RuntimeMetadata {
@@ -198,13 +198,13 @@ impl RuntimeMetadata {
 }
 
 /// Stores the encoded `RuntimeMetadata` as raw bytes.
-#[derive(Encode, Eq, PartialEq)]
+#[derive(Encode, Eq, PartialEq, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize, Deserialize))]
 pub struct OpaqueMetadata(pub Vec<u8>);
 
 /// Enum that should fail.
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Debug)]
 #[cfg_attr(feature = "serde_full", derive(Serialize, Deserialize))]
 pub enum RuntimeMetadataDeprecated {}
 
