@@ -30,7 +30,7 @@ legacy = ["v13", "v12", "v11", "v10", "v9", "v8"]
 v14 = ["scale-info"]
 
 # Serde support without relying on std features
-serde_codec = [
+serde_full = [
 	"scale-info/serde",
 	"serde",
 	"serde/alloc",
@@ -40,7 +40,7 @@ decode = ["scale-info/decode"]
 
 std = [
 	"decode",
-	"serde_codec",
+	"serde_full",
 	"codec/std",
 	"scale-info/std",
 	"serde/std",

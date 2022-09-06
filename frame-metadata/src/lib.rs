@@ -20,7 +20,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![warn(missing_docs)]
 #[cfg(all(
-	any(feature = "decode", feature = "serde_codec"),
+	any(feature = "decode", feature = "serde_full"),
 	any(
 		feature = "v13",
 		feature = "v12",
@@ -32,9 +32,9 @@
 	),
 	not(feature = "std")
 ))]
-compile_error!("decode/serde_codec features prior to v14 require std");
+compile_error!("decode and serde_full features prior to v14 require std");
 
-#[cfg(feature = "serde_codec")]
+#[cfg(feature = "serde_full")]
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "decode")]
@@ -98,7 +98,7 @@ pub use self::v14::*;
 /// Metadata prefixed by a u32 for reserved usage
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_codec", derive(Serialize))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
 pub struct RuntimeMetadataPrefixed(pub u32, pub RuntimeMetadata);
 
 impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
@@ -112,7 +112,7 @@ impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
 /// the enum nature of `RuntimeMetadata`.
 #[derive(Eq, Encode, PartialEq)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_codec", derive(Serialize))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
 pub enum RuntimeMetadata {
 	/// Unused; enum filler.
 	V0(RuntimeMetadataDeprecated),
@@ -200,12 +200,12 @@ impl RuntimeMetadata {
 /// Stores the encoded `RuntimeMetadata` as raw bytes.
 #[derive(Encode, Eq, PartialEq)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_codec", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde_full", derive(Serialize, Deserialize))]
 pub struct OpaqueMetadata(pub Vec<u8>);
 
 /// Enum that should fail.
 #[derive(Eq, PartialEq)]
-#[cfg_attr(feature = "serde_codec", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde_full", derive(Serialize, Deserialize))]
 pub enum RuntimeMetadataDeprecated {}
 
 impl Encode for RuntimeMetadataDeprecated {
