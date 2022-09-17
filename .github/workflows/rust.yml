@@ -69,12 +69,20 @@ jobs:
       - name:                      Add WASM Utilities
         run:                       rustup target add wasm32-unknown-unknown --toolchain stable
 ## Check Stage
-      - name:                      Checking wasm32
+      - name:                      Checking wasm32 (v14)
         uses:                      actions-rs/cargo@v1
+        uses:                      taiki-e/install-action@cargo-hack
         with:
-          command:                 check
+          command:                 hack
           toolchain:               stable
-          args:                    --manifest-path ./frame-metadata/Cargo.toml --target wasm32-unknown-unknown --no-default-features
+          args:                    check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --features v14 --skip legacy,v8,v9,v10,v11,v12,v13 --depth 4 --target wasm32-unknown-unknown
+      - name:                      Checking wasm32 (all features)
+        uses:                      actions-rs/cargo@v1
+        uses:                      taiki-e/install-action@cargo-hack
+        with:
+          command:                 hack
+          toolchain:               stable
+          args:                    check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --skip decode,serde_full --depth 4 --target wasm32-unknown-unknown
 
   check-features:
     name:                          Check Features
