@@ -92,39 +92,17 @@ jobs:
           fetch-depth:             5
           submodules:              recursive
 ## Check Stage
-      - name:                      Checking without any features
+      - name:                      Checking v14 feature combinations (native)
         uses:                      actions-rs/cargo@v1
+        uses:                      taiki-e/install-action@cargo-hack
         with:
-          command:                 check
+          command:                 hack
           toolchain:               stable
-          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features
-      - name:                      Checking v12
+          args:                    check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --features v14 --skip legacy,v8,v9,v10,v11,v12,v13 --depth 4
+      - name:                      Checking feature combinations excluding decode/serde_full (native)
         uses:                      actions-rs/cargo@v1
+        uses:                      taiki-e/install-action@cargo-hack
         with:
-          command:                 check
+          command:                 hack
           toolchain:               stable
-          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v12
-      - name:                      Checking v13
-        uses:                      actions-rs/cargo@v1
-        with:
-          command:                 check
-          toolchain:               stable
-          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v13
-      - name:                      Checking v14
-        uses:                      actions-rs/cargo@v1
-        with:
-          command:                 check
-          toolchain:               stable
-          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v14
-      - name:                      Checking all versions
-        uses:                      actions-rs/cargo@v1
-        with:
-          command:                 check
-          toolchain:               stable
-          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features v12,v13,v14
-      - name:                      Checking fully featured wasm
-        uses:                      actions-rs/cargo@v1
-        with:
-          command:                 check
-          toolchain:               stable
-          args:                    --manifest-path ./frame-metadata/Cargo.toml --no-default-features --features decode,serde_full,v14
+          args:                    check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --skip decode,serde_full --depth 4
