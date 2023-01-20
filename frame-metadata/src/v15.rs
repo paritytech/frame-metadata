@@ -89,7 +89,7 @@ pub struct TraitMetadata<T: Form = MetaForm> {
 	/// Trait version.
 	pub version: u64,
 	/// Trait methods.
-	pub methods: Vec<T::String>,
+	pub methods: Vec<MethodMetadata<T>>,
 }
 
 impl IntoPortable for TraitMetadata {
@@ -116,7 +116,7 @@ pub struct MethodMetadata<T: Form = MetaForm> {
 	/// Method name.
 	pub name: T::String,
 	/// Method parameters.
-	pub inputs: Vec<T::String>,
+	pub inputs: Vec<ParamMetadata<T>>,
 	/// Method output.
 	pub output: T::Type,
 }
@@ -129,6 +129,32 @@ impl IntoPortable for MethodMetadata {
 			name: self.name.into_portable(registry),
 			inputs: registry.map_into_portable(self.inputs),
 			output: registry.register_type(&self.output),
+		}
+	}
+}
+
+/// Metadata of a runtime method parameter.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct ParamMetadata<T: Form = MetaForm> {
+	/// Parameter name.
+	pub name: T::String,
+	/// Parameter type.
+	pub ty: T::Type,
+}
+
+impl IntoPortable for ParamMetadata {
+	type Output = ParamMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		ParamMetadata {
+			name: self.name.into_portable(registry),
+			ty: registry.register_type(&self.ty),
 		}
 	}
 }
