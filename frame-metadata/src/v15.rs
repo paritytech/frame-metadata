@@ -95,6 +95,8 @@ pub struct TraitMetadata<T: Form = MetaForm> {
 	pub version: u64,
 	/// Trait methods.
 	pub methods: Vec<MethodMetadata<T>>,
+	/// Trait documentation.
+	pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for TraitMetadata {
@@ -105,6 +107,7 @@ impl IntoPortable for TraitMetadata {
 			name: self.name.into_portable(registry),
 			version: self.version,
 			methods: registry.map_into_portable(self.methods),
+			docs: registry.map_into_portable(self.docs),
 		}
 	}
 }
@@ -124,6 +127,8 @@ pub struct MethodMetadata<T: Form = MetaForm> {
 	pub inputs: Vec<ParamMetadata<T>>,
 	/// Method output.
 	pub output: T::Type,
+	/// Method documentation.
+	pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for MethodMetadata {
@@ -134,6 +139,7 @@ impl IntoPortable for MethodMetadata {
 			name: self.name.into_portable(registry),
 			inputs: registry.map_into_portable(self.inputs),
 			output: registry.register_type(&self.output),
+			docs: registry.map_into_portable(self.docs),
 		}
 	}
 }
