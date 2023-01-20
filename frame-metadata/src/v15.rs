@@ -92,7 +92,7 @@ pub struct TraitMetadata<T: Form = MetaForm> {
 	/// Trait name.
 	pub name: T::String,
 	/// Trait version.
-	pub version: u64,
+	pub version: Option<u64>,
 	/// Trait methods.
 	pub methods: Vec<MethodMetadata<T>>,
 	/// Trait documentation.
