@@ -104,6 +104,35 @@ impl IntoPortable for TraitMetadata {
 	}
 }
 
+/// Metadata of a runtime method.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct MethodMetadata<T: Form = MetaForm> {
+	/// Method name.
+	pub name: T::String,
+	/// Method parameters.
+	pub inputs: Vec<T::String>,
+	/// Method output.
+	pub output: T::Type,
+}
+
+impl IntoPortable for MethodMetadata {
+	type Output = MethodMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		MethodMetadata {
+			name: self.name.into_portable(registry),
+			inputs: registry.map_into_portable(self.inputs),
+			output: registry.register_type(&self.output),
+		}
+	}
+}
+
 /// Metadata of the extrinsic used by the runtime.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
