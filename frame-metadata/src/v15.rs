@@ -32,11 +32,11 @@ use scale_info::{
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
 /// Latest runtime metadata
-pub type RuntimeMetadataLastVersion = RuntimeMetadataV14;
+pub type RuntimeMetadataLastVersion = RuntimeMetadataV15;
 
 impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 	fn from(metadata: RuntimeMetadataLastVersion) -> RuntimeMetadataPrefixed {
-		RuntimeMetadataPrefixed(META_RESERVED, super::RuntimeMetadata::V14(metadata))
+		RuntimeMetadataPrefixed(META_RESERVED, super::RuntimeMetadata::V15(metadata))
 	}
 }
 
@@ -44,7 +44,7 @@ impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
-pub struct RuntimeMetadataV14 {
+pub struct RuntimeMetadataV15 {
 	/// Type registry containing all types used in the metadata.
 	pub types: PortableRegistry,
 	/// Metadata of all the pallets.
@@ -55,8 +55,8 @@ pub struct RuntimeMetadataV14 {
 	pub ty: <PortableForm as Form>::Type,
 }
 
-impl RuntimeMetadataV14 {
-	/// Create a new instance of [`RuntimeMetadataV14`].
+impl RuntimeMetadataV15 {
+	/// Create a new instance of [`RuntimeMetadataV15`].
 	pub fn new(
 		pallets: Vec<PalletMetadata>,
 		extrinsic: ExtrinsicMetadata,
