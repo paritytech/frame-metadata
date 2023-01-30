@@ -19,7 +19,7 @@ scale-info = { version = "2.0.0", default-features = false, optional = true, fea
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
 
 [features]
-default = ["std", "v15"]
+default = ["std", "v14"]
 v8  = []
 v9  = []
 v10 = []
@@ -28,7 +28,7 @@ v12 = []
 v13 = []
 legacy = ["v13", "v12", "v11", "v10", "v9", "v8"]
 v14 = ["scale-info"]
-v15 = ["scale-info"]
+v15-unstable = ["scale-info"]
 
 # Serde support without relying on std features
 serde_full = [
