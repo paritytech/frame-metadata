@@ -91,8 +91,6 @@ impl RuntimeMetadataV15 {
 pub struct TraitMetadata<T: Form = MetaForm> {
 	/// Trait name.
 	pub name: T::String,
-	/// Trait version.
-	pub version: Option<u64>,
 	/// Trait methods.
 	pub methods: Vec<MethodMetadata<T>>,
 	/// Trait documentation.
@@ -105,7 +103,6 @@ impl IntoPortable for TraitMetadata {
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		TraitMetadata {
 			name: self.name.into_portable(registry),
-			version: self.version,
 			methods: registry.map_into_portable(self.methods),
 			docs: registry.map_into_portable(self.docs),
 		}
