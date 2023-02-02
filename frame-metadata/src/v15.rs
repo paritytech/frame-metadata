@@ -48,9 +48,9 @@ pub struct RuntimeMetadataV15 {
 	/// Type registry containing all types used in the metadata.
 	pub types: PortableRegistry,
 	/// Metadata of all the pallets.
-	pub pallets: Vec<PalletMetadata<PortableForm>>,
+	pub pallets: Vec<crate::v14::PalletMetadata<PortableForm>>,
 	/// Metadata of the extrinsic.
-	pub extrinsic: ExtrinsicMetadata<PortableForm>,
+	pub extrinsic: crate::v14::ExtrinsicMetadata<PortableForm>,
 	/// The type of the `Runtime`.
 	pub ty: <PortableForm as Form>::Type,
 	/// Metadata of the Runtime API.
@@ -60,8 +60,8 @@ pub struct RuntimeMetadataV15 {
 impl RuntimeMetadataV15 {
 	/// Create a new instance of [`RuntimeMetadataV15`].
 	pub fn new(
-		pallets: Vec<PalletMetadata>,
-		extrinsic: ExtrinsicMetadata,
+		pallets: Vec<crate::v14::PalletMetadata>,
+		extrinsic: crate::v14::ExtrinsicMetadata,
 		runtime_type: MetaType,
 		runtime: Vec<TraitMetadata>,
 	) -> Self {
