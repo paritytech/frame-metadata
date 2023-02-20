@@ -172,4 +172,4 @@ jobs:
         run: cargo hack check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --features v14 --skip legacy,v8,v9,v10,v11,v12,v13 --depth 4
 
       - name: Checking feature combinations excluding decode/serde_full (native)
-        run: check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --skip decode,serde_full --depth 4
+        run: cargo hack check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --skip decode,serde_full --depth 4
