@@ -33,7 +33,7 @@ impl From<MetadataIR> for RuntimeMetadataV14 {
 		RuntimeMetadataV14::new(
 			ir.pallets.into_iter().map(Into::into).collect(),
 			ir.extrinsic.into(),
-			ir.ty.into(),
+			ir.ty,
 		)
 	}
 }

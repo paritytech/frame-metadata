@@ -15,10 +15,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod types;
-pub use types::*;
-
-pub mod api;
+//! Convert the IR to specific versions.
 
 #[cfg(feature = "v14")]
-mod v14;
+use crate::v14::RuntimeMetadataV14;
+use crate::{ir::types::MetadataIR, RuntimeMetadataPrefixed};
+
+/// Transform the IR to the specified version.
+///
+/// Use [`Self::metadata_versions`] to find supported versions.
+pub fn to_version(metadata: MetadataIR, version: u32) -> Option<RuntimeMetadataPrefixed> {
+	match version {
+		#[cfg(feature = "v14")]
+		14 => {
+			let v14: RuntimeMetadataV14 = metadata.into();
+			Some(v14.into())
+		}
+		_ => None,
+	}
+}
+
+/// Returns the supported versions of metadata.
+pub fn supported_versions() -> Vec<u32> {
+	vec![
+		#[cfg(feature = "v14")]
+		14,
+	]
+}
