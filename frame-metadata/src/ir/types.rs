@@ -39,9 +39,9 @@ pub struct MetadataIR<T: Form = MetaForm> {
 	/// Palet metadata.
 	pub pallets: Vec<PalletMetadataIR<T>>,
 	/// Metadata of the extrinsic.
-	pub extrinsic: ExtrinsicMetadataIR<PortableForm>,
+	pub extrinsic: ExtrinsicMetadataIR<T>,
 	/// The type of the `Runtime`.
-	pub ty: <PortableForm as Form>::Type,
+	pub ty: T::Type,
 }
 
 /// The intermediate representation for a pallet metadata.
