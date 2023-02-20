@@ -21,13 +21,15 @@
 use crate::v14::RuntimeMetadataV14;
 use crate::{ir::types::MetadataIR, RuntimeMetadataPrefixed};
 
+const V14: u32 = 14;
+
 /// Transform the IR to the specified version.
 ///
 /// Use [`Self::metadata_versions`] to find supported versions.
 pub fn to_version(metadata: MetadataIR, version: u32) -> Option<RuntimeMetadataPrefixed> {
 	match version {
 		#[cfg(feature = "v14")]
-		14 => {
+		V14 => {
 			let v14: RuntimeMetadataV14 = metadata.into();
 			Some(v14.into())
 		}
@@ -39,6 +41,37 @@ pub fn to_version(metadata: MetadataIR, version: u32) -> Option<RuntimeMetadataP
 pub fn supported_versions() -> Vec<u32> {
 	vec![
 		#[cfg(feature = "v14")]
-		14,
+		V14,
 	]
+}
+
+#[cfg(test)]
+mod test {
+	use scale_info::meta_type;
+
+	use crate::{ir::ExtrinsicMetadataIR, RuntimeMetadata};
+
+	use super::*;
+
+	fn ir_metadata() -> MetadataIR {
+		MetadataIR {
+			pallets: vec![],
+			extrinsic: ExtrinsicMetadataIR {
+				ty: meta_type::<()>(),
+				version: 0,
+				signed_extensions: vec![],
+			},
+			ty: meta_type::<()>(),
+		}
+	}
+
+	#[test]
+	fn to_version_14() {
+		let ir = ir_metadata();
+		let metadata = to_version(ir, V14).expect("Should return prefixed metadata");
+
+		assert_eq!(metadata.0, crate::v14::META_RESERVED);
+
+		assert!(matches!(metadata.1, RuntimeMetadata::V14(_)));
+	}
 }
