@@ -25,7 +25,7 @@ const V14: u32 = 14;
 
 /// Transform the IR to the specified version.
 ///
-/// Use [`Self::metadata_versions`] to find supported versions.
+/// Use [`supported_versions`] to find supported versions.
 pub fn to_version(metadata: MetadataIR, version: u32) -> Option<RuntimeMetadataPrefixed> {
 	match version {
 		#[cfg(feature = "v14")]
