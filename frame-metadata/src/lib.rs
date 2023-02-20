@@ -101,9 +101,9 @@ pub use self::v14::*;
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 pub struct RuntimeMetadataPrefixed(pub u32, pub RuntimeMetadata);
 
-impl Into<Vec<u8>> for RuntimeMetadataPrefixed {
-	fn into(self) -> Vec<u8> {
-		self.encode()
+impl From<RuntimeMetadataPrefixed> for Vec<u8> {
+	fn from(value: RuntimeMetadataPrefixed) -> Self {
+		value.encode()
 	}
 }
 
