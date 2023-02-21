@@ -124,6 +124,7 @@ jobs:
             profile: minimal
             toolchain: stable
             components: clippy
+            target: wasm32-unknown-unknown
             override: true
 
       - name: Rust Cache
@@ -134,9 +135,6 @@ jobs:
         with:
           crate: cargo-hack
           version: 0.5
-
-      - name: Add WASM Utilities
-        run: rustup target add wasm32-unknown-unknown --toolchain stable
 
       - name: Checking wasm32 (v14)
         run: cargo hack check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --features v14 --skip legacy,v8,v9,v10,v11,v12,v13 --depth 4 --target wasm32-unknown-unknown
