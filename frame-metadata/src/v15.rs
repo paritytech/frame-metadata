@@ -48,7 +48,7 @@ pub struct RuntimeMetadataV15 {
 	/// Type registry containing all types used in the metadata.
 	pub types: PortableRegistry,
 	/// Metadata of all the pallets.
-	pub pallets: Vec<crate::v14::PalletMetadata<PortableForm>>,
+	pub pallets: Vec<PalletMetadata<PortableForm>>,
 	/// Metadata of the extrinsic.
 	pub extrinsic: crate::v14::ExtrinsicMetadata<PortableForm>,
 	/// The type of the `Runtime`.
@@ -60,7 +60,7 @@ pub struct RuntimeMetadataV15 {
 impl RuntimeMetadataV15 {
 	/// Create a new instance of [`RuntimeMetadataV15`].
 	pub fn new(
-		pallets: Vec<crate::v14::PalletMetadata>,
+		pallets: Vec<PalletMetadata>,
 		extrinsic: crate::v14::ExtrinsicMetadata,
 		runtime_type: MetaType,
 		runtime: Vec<TraitMetadata>,
@@ -237,18 +237,20 @@ pub struct PalletMetadata<T: Form = MetaForm> {
 	/// Pallet name.
 	pub name: T::String,
 	/// Pallet storage metadata.
-	pub storage: Option<PalletStorageMetadata<T>>,
+	pub storage: Option<crate::v14::PalletStorageMetadata<T>>,
 	/// Pallet calls metadata.
-	pub calls: Option<PalletCallMetadata<T>>,
+	pub calls: Option<crate::v14::PalletCallMetadata<T>>,
 	/// Pallet event metadata.
-	pub event: Option<PalletEventMetadata<T>>,
+	pub event: Option<crate::v14::PalletEventMetadata<T>>,
 	/// Pallet constants metadata.
-	pub constants: Vec<PalletConstantMetadata<T>>,
+	pub constants: Vec<crate::v14::PalletConstantMetadata<T>>,
 	/// Pallet error metadata.
-	pub error: Option<PalletErrorMetadata<T>>,
+	pub error: Option<crate::v14::PalletErrorMetadata<T>>,
 	/// Define the index of the pallet, this index will be used for the encoding of pallet event,
 	/// call and origin variants.
 	pub index: u8,
+	/// Pallet documentation.
+	pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for PalletMetadata {
@@ -263,6 +265,7 @@ impl IntoPortable for PalletMetadata {
 			constants: registry.map_into_portable(self.constants),
 			error: self.error.map(|error| error.into_portable(registry)),
 			index: self.index,
+			docs: registry.map_into_portable(self.docs),
 		}
 	}
 }
