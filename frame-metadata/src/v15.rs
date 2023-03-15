@@ -121,7 +121,7 @@ pub struct RuntimeApiMethodMetadata<T: Form = MetaForm> {
 	/// Method name.
 	pub name: T::String,
 	/// Method parameters.
-	pub inputs: Vec<ParamMetadata<T>>,
+	pub inputs: Vec<RuntimeApiMethodParamMetadata<T>>,
 	/// Method output.
 	pub output: T::Type,
 	/// Method documentation.
@@ -149,18 +149,18 @@ impl IntoPortable for RuntimeApiMethodMetadata {
 	feature = "serde_full",
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
-pub struct ParamMetadata<T: Form = MetaForm> {
+pub struct RuntimeApiMethodParamMetadata<T: Form = MetaForm> {
 	/// Parameter name.
 	pub name: T::String,
 	/// Parameter type.
 	pub ty: T::Type,
 }
 
-impl IntoPortable for ParamMetadata {
-	type Output = ParamMetadata<PortableForm>;
+impl IntoPortable for RuntimeApiMethodParamMetadata {
+	type Output = RuntimeApiMethodParamMetadata<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		ParamMetadata {
+		RuntimeApiMethodParamMetadata {
 			name: self.name.into_portable(registry),
 			ty: registry.register_type(&self.ty),
 		}
