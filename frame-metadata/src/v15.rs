@@ -249,6 +249,8 @@ pub struct PalletMetadata<T: Form = MetaForm> {
 	/// Define the index of the pallet, this index will be used for the encoding of pallet event,
 	/// call and origin variants.
 	pub index: u8,
+	/// Pallet documentation.
+	pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for PalletMetadata {
@@ -263,6 +265,7 @@ impl IntoPortable for PalletMetadata {
 			constants: registry.map_into_portable(self.constants),
 			error: self.error.map(|error| error.into_portable(registry)),
 			index: self.index,
+			docs: registry.map_into_portable(self.docs),
 		}
 	}
 }
