@@ -54,7 +54,7 @@ pub struct RuntimeMetadataV15 {
 	/// The type of the `Runtime`.
 	pub ty: <PortableForm as Form>::Type,
 	/// Metadata of the Runtime API.
-	pub runtime: Vec<TraitMetadata<PortableForm>>,
+	pub runtime: Vec<RuntimeApiMetadata<PortableForm>>,
 }
 
 impl RuntimeMetadataV15 {
@@ -63,7 +63,7 @@ impl RuntimeMetadataV15 {
 		pallets: Vec<PalletMetadata>,
 		extrinsic: ExtrinsicMetadata,
 		runtime_type: MetaType,
-		runtime: Vec<TraitMetadata>,
+		runtime: Vec<RuntimeApiMetadata>,
 	) -> Self {
 		let mut registry = Registry::new();
 		let pallets = registry.map_into_portable(pallets);
@@ -88,20 +88,20 @@ impl RuntimeMetadataV15 {
 	feature = "serde_full",
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
-pub struct TraitMetadata<T: Form = MetaForm> {
+pub struct RuntimeApiMetadata<T: Form = MetaForm> {
 	/// Trait name.
 	pub name: T::String,
 	/// Trait methods.
-	pub methods: Vec<MethodMetadata<T>>,
+	pub methods: Vec<RuntimeApiMethodMetadata<T>>,
 	/// Trait documentation.
 	pub docs: Vec<T::String>,
 }
 
-impl IntoPortable for TraitMetadata {
-	type Output = TraitMetadata<PortableForm>;
+impl IntoPortable for RuntimeApiMetadata {
+	type Output = RuntimeApiMetadata<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		TraitMetadata {
+		RuntimeApiMetadata {
 			name: self.name.into_portable(registry),
 			methods: registry.map_into_portable(self.methods),
 			docs: registry.map_into_portable(self.docs),
@@ -117,7 +117,7 @@ impl IntoPortable for TraitMetadata {
 	feature = "serde_full",
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
-pub struct MethodMetadata<T: Form = MetaForm> {
+pub struct RuntimeApiMethodMetadata<T: Form = MetaForm> {
 	/// Method name.
 	pub name: T::String,
 	/// Method parameters.
@@ -128,11 +128,11 @@ pub struct MethodMetadata<T: Form = MetaForm> {
 	pub docs: Vec<T::String>,
 }
 
-impl IntoPortable for MethodMetadata {
-	type Output = MethodMetadata<PortableForm>;
+impl IntoPortable for RuntimeApiMethodMetadata {
+	type Output = RuntimeApiMethodMetadata<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		MethodMetadata {
+		RuntimeApiMethodMetadata {
 			name: self.name.into_portable(registry),
 			inputs: registry.map_into_portable(self.inputs),
 			output: registry.register_type(&self.output),
