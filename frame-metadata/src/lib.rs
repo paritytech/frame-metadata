@@ -100,7 +100,7 @@ pub mod v15;
 pub use self::v14::*;
 
 /// Metadata prefix.
-pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
+pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warning for endianness.
 
 /// Metadata prefixed by a u32 for reserved usage
 #[derive(Eq, Encode, PartialEq, Debug)]
