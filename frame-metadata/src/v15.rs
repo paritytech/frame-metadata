@@ -20,16 +20,13 @@ use codec::Decode;
 #[cfg(feature = "serde_full")]
 use serde::Serialize;
 
-use super::RuntimeMetadataPrefixed;
+use super::{RuntimeMetadataPrefixed, META_RESERVED};
 use codec::Encode;
 use scale_info::prelude::vec::Vec;
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
 	IntoPortable, MetaType, PortableRegistry, Registry,
 };
-
-/// Current prefix of metadata
-pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
 
 /// Latest runtime metadata
 pub type RuntimeMetadataLastVersion = RuntimeMetadataV15;
@@ -63,19 +60,19 @@ impl RuntimeMetadataV15 {
 		pallets: Vec<PalletMetadata>,
 		extrinsic: ExtrinsicMetadata,
 		runtime_type: MetaType,
-		runtime: Vec<RuntimeApiMetadata>,
+		apis: Vec<RuntimeApiMetadata>,
 	) -> Self {
 		let mut registry = Registry::new();
 		let pallets = registry.map_into_portable(pallets);
 		let extrinsic = extrinsic.into_portable(&mut registry);
 		let ty = registry.register_type(&runtime_type);
-		let runtime = registry.map_into_portable(runtime);
+		let apis = registry.map_into_portable(apis);
 		Self {
 			types: registry.into(),
 			pallets,
 			extrinsic,
 			ty,
-			runtime,
+			apis,
 		}
 	}
 }

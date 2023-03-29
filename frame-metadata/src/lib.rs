@@ -99,6 +99,9 @@ pub mod v15;
 #[cfg(feature = "v14")]
 pub use self::v14::*;
 
+/// Metadata prefix.
+pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
+
 /// Metadata prefixed by a u32 for reserved usage
 #[derive(Eq, Encode, PartialEq, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
