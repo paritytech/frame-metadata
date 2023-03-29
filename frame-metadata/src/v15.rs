@@ -54,7 +54,7 @@ pub struct RuntimeMetadataV15 {
 	/// The type of the `Runtime`.
 	pub ty: <PortableForm as Form>::Type,
 	/// Metadata of the Runtime API.
-	pub runtime: Vec<RuntimeApiMetadata<PortableForm>>,
+	pub apis: Vec<RuntimeApiMetadata<PortableForm>>,
 }
 
 impl RuntimeMetadataV15 {
