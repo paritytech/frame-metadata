@@ -18,7 +18,7 @@ use codec::Decode;
 #[cfg(feature = "serde_full")]
 use serde::Serialize;
 
-use super::RuntimeMetadataPrefixed;
+use super::{RuntimeMetadataPrefixed, META_RESERVED};
 use codec::Encode;
 use scale_info::prelude::vec::Vec;
 use scale_info::{
@@ -26,15 +26,12 @@ use scale_info::{
 	IntoPortable, MetaType, PortableRegistry, Registry,
 };
 
-/// Current prefix of metadata
-pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warn endianness
-
 /// Latest runtime metadata
-pub type RuntimeMetadataLastVersion = RuntimeMetadataV14;
+pub type RuntimeMetadataLastVersion = RuntimeMetadataV15;
 
 impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 	fn from(metadata: RuntimeMetadataLastVersion) -> RuntimeMetadataPrefixed {
-		RuntimeMetadataPrefixed(META_RESERVED, super::RuntimeMetadata::V14(metadata))
+		RuntimeMetadataPrefixed(META_RESERVED, super::RuntimeMetadata::V15(metadata))
 	}
 }
 
@@ -42,7 +39,7 @@ impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
-pub struct RuntimeMetadataV14 {
+pub struct RuntimeMetadataV15 {
 	/// Type registry containing all types used in the metadata.
 	pub types: PortableRegistry,
 	/// Metadata of all the pallets.
@@ -51,24 +48,116 @@ pub struct RuntimeMetadataV14 {
 	pub extrinsic: ExtrinsicMetadata<PortableForm>,
 	/// The type of the `Runtime`.
 	pub ty: <PortableForm as Form>::Type,
+	/// Metadata of the Runtime API.
+	pub apis: Vec<RuntimeApiMetadata<PortableForm>>,
 }
 
-impl RuntimeMetadataV14 {
-	/// Create a new instance of [`RuntimeMetadataV14`].
+impl RuntimeMetadataV15 {
+	/// Create a new instance of [`RuntimeMetadataV15`].
 	pub fn new(
 		pallets: Vec<PalletMetadata>,
 		extrinsic: ExtrinsicMetadata,
 		runtime_type: MetaType,
+		apis: Vec<RuntimeApiMetadata>,
 	) -> Self {
 		let mut registry = Registry::new();
 		let pallets = registry.map_into_portable(pallets);
 		let extrinsic = extrinsic.into_portable(&mut registry);
 		let ty = registry.register_type(&runtime_type);
+		let apis = registry.map_into_portable(apis);
 		Self {
 			types: registry.into(),
 			pallets,
 			extrinsic,
 			ty,
+			apis,
+		}
+	}
+}
+
+/// Metadata of a runtime trait.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct RuntimeApiMetadata<T: Form = MetaForm> {
+	/// Trait name.
+	pub name: T::String,
+	/// Trait methods.
+	pub methods: Vec<RuntimeApiMethodMetadata<T>>,
+	/// Trait documentation.
+	pub docs: Vec<T::String>,
+}
+
+impl IntoPortable for RuntimeApiMetadata {
+	type Output = RuntimeApiMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		RuntimeApiMetadata {
+			name: self.name.into_portable(registry),
+			methods: registry.map_into_portable(self.methods),
+			docs: registry.map_into_portable(self.docs),
+		}
+	}
+}
+
+/// Metadata of a runtime method.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct RuntimeApiMethodMetadata<T: Form = MetaForm> {
+	/// Method name.
+	pub name: T::String,
+	/// Method parameters.
+	pub inputs: Vec<RuntimeApiMethodParamMetadata<T>>,
+	/// Method output.
+	pub output: T::Type,
+	/// Method documentation.
+	pub docs: Vec<T::String>,
+}
+
+impl IntoPortable for RuntimeApiMethodMetadata {
+	type Output = RuntimeApiMethodMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		RuntimeApiMethodMetadata {
+			name: self.name.into_portable(registry),
+			inputs: registry.map_into_portable(self.inputs),
+			output: registry.register_type(&self.output),
+			docs: registry.map_into_portable(self.docs),
+		}
+	}
+}
+
+/// Metadata of a runtime method parameter.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct RuntimeApiMethodParamMetadata<T: Form = MetaForm> {
+	/// Parameter name.
+	pub name: T::String,
+	/// Parameter type.
+	pub ty: T::Type,
+}
+
+impl IntoPortable for RuntimeApiMethodParamMetadata {
+	type Output = RuntimeApiMethodParamMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		RuntimeApiMethodParamMetadata {
+			name: self.name.into_portable(registry),
+			ty: registry.register_type(&self.ty),
 		}
 	}
 }
@@ -155,6 +244,8 @@ pub struct PalletMetadata<T: Form = MetaForm> {
 	/// Define the index of the pallet, this index will be used for the encoding of pallet event,
 	/// call and origin variants.
 	pub index: u8,
+	/// Pallet documentation.
+	pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for PalletMetadata {
@@ -169,6 +260,7 @@ impl IntoPortable for PalletMetadata {
 			constants: registry.map_into_portable(self.constants),
 			error: self.error.map(|error| error.into_portable(registry)),
 			index: self.index,
+			docs: registry.map_into_portable(self.docs),
 		}
 	}
 }

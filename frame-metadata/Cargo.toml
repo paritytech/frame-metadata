@@ -28,6 +28,7 @@ v12 = []
 v13 = []
 legacy = ["v13", "v12", "v11", "v10", "v9", "v8"]
 v14 = ["scale-info"]
+v15-unstable = ["scale-info"]
 
 # Serde support without relying on std features
 serde_full = [

@@ -1,6 +1,4 @@
-// This file is part of Substrate.
-
-// Copyright (C) 2018-2020 Parity Technologies (UK) Ltd.
+// Copyright (C) Parity Technologies (UK) Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -89,11 +87,18 @@ pub mod v13;
 #[cfg(feature = "v14")]
 pub mod v14;
 
+/// Metadata v15
+#[cfg(feature = "v15-unstable")]
+pub mod v15;
+
 // Reexport all the types from the latest version.
 //
 // When a new version becomes available, update this.
 #[cfg(feature = "v14")]
 pub use self::v14::*;
+
+/// Metadata prefix.
+pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warning for endianness.
 
 /// Metadata prefixed by a u32 for reserved usage
 #[derive(Eq, Encode, PartialEq, Debug)]
@@ -172,6 +177,12 @@ pub enum RuntimeMetadata {
 	/// Version 14 for runtime metadata, as raw encoded bytes.
 	#[cfg(not(feature = "v14"))]
 	V14(OpaqueMetadata),
+	/// Version 15 for runtime metadata.
+	#[cfg(feature = "v15-unstable")]
+	V15(v15::RuntimeMetadataV15),
+	/// Version 15 for runtime metadata, as raw encoded bytes.
+	#[cfg(not(feature = "v15-unstable"))]
+	V15(OpaqueMetadata),
 }
 
 impl RuntimeMetadata {
@@ -193,6 +204,7 @@ impl RuntimeMetadata {
 			RuntimeMetadata::V12(_) => 12,
 			RuntimeMetadata::V13(_) => 13,
 			RuntimeMetadata::V14(_) => 14,
+			RuntimeMetadata::V15(_) => 15,
 		}
 	}
 }
