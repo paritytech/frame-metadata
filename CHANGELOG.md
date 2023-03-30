@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [15.1.0] - 2023-03-30
+
+### Added
+
+- Add metadata V15 with Runtime API support [#48](https://github.com/paritytech/frame-metadata/pull/48)
+
 ## [15.0.0] - 2022-02-08
 
 ### Changed
