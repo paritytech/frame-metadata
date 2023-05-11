@@ -175,6 +175,12 @@ pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	pub ty: T::Type,
 	/// Extrinsic version.
 	pub version: u8,
+	/// The type of the address that signes the extrinsic
+	pub address_ty: T::Type,
+	/// The type of the call.
+	pub call_ty: T::Type,
+	/// The type of the extrinsic's signature.
+	pub signature_ty: T::Type,
 	/// The signed extensions in the order they appear in the extrinsic.
 	pub signed_extensions: Vec<SignedExtensionMetadata<T>>,
 }
