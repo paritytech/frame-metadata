@@ -177,10 +177,12 @@ pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	pub version: u8,
 	/// The type of the address that signes the extrinsic
 	pub address_ty: T::Type,
-	/// The type of the call.
+	/// The type of the outermost Call enum.
 	pub call_ty: T::Type,
 	/// The type of the extrinsic's signature.
 	pub signature_ty: T::Type,
+	/// The type of the outermost Extra enum.
+	pub extra_ty: T::Type,
 	/// The signed extensions in the order they appear in the extrinsic.
 	pub signed_extensions: Vec<SignedExtensionMetadata<T>>,
 }
@@ -192,6 +194,10 @@ impl IntoPortable for ExtrinsicMetadata {
 		ExtrinsicMetadata {
 			ty: registry.register_type(&self.ty),
 			version: self.version,
+			address_ty: registry.register_type(&self.address_ty),
+			call_ty: registry.register_type(&self.call_ty),
+			signature_ty: registry.register_type(&self.signature_ty),
+			extra_ty: registry.register_type(&self.extra_ty),
 			signed_extensions: registry.map_into_portable(self.signed_extensions),
 		}
 	}
