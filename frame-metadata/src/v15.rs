@@ -50,6 +50,12 @@ pub struct RuntimeMetadataV15 {
 	pub ty: <PortableForm as Form>::Type,
 	/// Metadata of the Runtime API.
 	pub apis: Vec<RuntimeApiMetadata<PortableForm>>,
+	/// The type of the outer `RuntimeCall` enum.
+	pub call_enum_ty: <PortableForm as Form>::Type,
+	/// The type of the outer `RuntimeEvent` enum.
+	pub event_enum_ty: <PortableForm as Form>::Type,
+	/// The type of the outer `RuntimeError` enum.
+	pub error_enum_ty: <PortableForm as Form>::Type,
 }
 
 impl RuntimeMetadataV15 {
@@ -59,18 +65,27 @@ impl RuntimeMetadataV15 {
 		extrinsic: ExtrinsicMetadata,
 		runtime_type: MetaType,
 		apis: Vec<RuntimeApiMetadata>,
+		call_enum_ty: MetaType,
+		event_enum_ty: MetaType,
+		error_enum_ty: MetaType,
 	) -> Self {
 		let mut registry = Registry::new();
 		let pallets = registry.map_into_portable(pallets);
 		let extrinsic = extrinsic.into_portable(&mut registry);
 		let ty = registry.register_type(&runtime_type);
 		let apis = registry.map_into_portable(apis);
+		let call_enum_ty = registry.register_type(&call_enum_ty);
+		let event_enum_ty = registry.register_type(&event_enum_ty);
+		let error_enum_ty = registry.register_type(&error_enum_ty);
 		Self {
 			types: registry.into(),
 			pallets,
 			extrinsic,
 			ty,
 			apis,
+			call_enum_ty,
+			event_enum_ty,
+			error_enum_ty,
 		}
 	}
 }
