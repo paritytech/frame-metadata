@@ -76,7 +76,7 @@ impl RuntimeMetadataV15 {
 		apis: Vec<RuntimeApiMetadata>,
 		call_enum_ty: MetaType,
 		event_enum_ty: MetaType,
-		error_enum_ty: MetaType,
+		module_error_enum_ty: MetaType,
 	) -> Self {
 		let mut registry = Registry::new();
 		let pallets = registry.map_into_portable(pallets);
@@ -85,7 +85,7 @@ impl RuntimeMetadataV15 {
 		let apis = registry.map_into_portable(apis);
 		let call_enum_ty = registry.register_type(&call_enum_ty);
 		let event_enum_ty = registry.register_type(&event_enum_ty);
-		let error_enum_ty = registry.register_type(&error_enum_ty);
+		let module_error_enum_ty = registry.register_type(&module_error_enum_ty);
 		Self {
 			types: registry.into(),
 			pallets,
@@ -94,7 +94,7 @@ impl RuntimeMetadataV15 {
 			apis,
 			call_enum_ty,
 			event_enum_ty,
-			error_enum_ty,
+			module_error_enum_ty,
 		}
 	}
 }
