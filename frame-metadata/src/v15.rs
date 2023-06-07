@@ -65,8 +65,10 @@ pub struct RuntimeMetadataV15 {
 	///
 	/// # Note
 	///
-	/// This type cannot be used directly to decode `sp_runtime::DispatchError` from the
-	/// chain. It provides just the information needed to decode `sp_runtime::DispatchError::Module`.
+	/// - This type cannot be used directly to decode `sp_runtime::DispatchError` from the
+	///   chain. It provides just the information needed to decode `sp_runtime::DispatchError::Module`.
+	/// - Decoding the 5 error bytes into this type will not always lead to all of the bytes being consumed;
+	///   many error types do not require all of the bytes to represent them fully.
 	pub module_error_enum_ty: <PortableForm as Form>::Type,
 }
 
