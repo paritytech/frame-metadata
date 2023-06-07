@@ -57,10 +57,10 @@ pub struct RuntimeMetadataV15 {
 	/// The module error type of the
 	/// [`DispatchError::Module`](https://docs.rs/sp-runtime/24.0.0/sp_runtime/enum.DispatchError.html#variant.Module) variant.
 	///
-	/// The `Module` variant will be 5 scale encoded bytes which are normally decoded into 
+	/// The `Module` variant will be 5 scale encoded bytes which are normally decoded into
 	/// an `{ index: u8, error: [u8; 4] }` struct. This type ID points to an enum type which instead
-	/// interprets the first `index` byte as a pallet variant, and the remaining `error` bytes as the 
-	/// appropriate `pallet::Error` type. It is an equally valid way to decode the error bytes, and 
+	/// interprets the first `index` byte as a pallet variant, and the remaining `error` bytes as the
+	/// appropriate `pallet::Error` type. It is an equally valid way to decode the error bytes, and
 	/// can be more informative.
 	///
 	/// # Note
