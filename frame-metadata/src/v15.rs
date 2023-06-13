@@ -50,7 +50,7 @@ pub struct RuntimeMetadataV15 {
 	pub ty: <PortableForm as Form>::Type,
 	/// Metadata of the Runtime API.
 	pub apis: Vec<RuntimeApiMetadata<PortableForm>>,
-	/// The type of the outer enums.
+	/// The outer enums types as found in the runtime.
 	pub outer_enums: OuterEnums<PortableForm>,
 	/// Allows users to add custom types to the metadata.
 	pub custom: CustomMetadata<PortableForm>,
