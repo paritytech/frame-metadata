@@ -20,9 +20,9 @@ use serde::Serialize;
 
 use super::{RuntimeMetadataPrefixed, META_RESERVED};
 use codec::Encode;
-use scale_info::prelude::vec::Vec;
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
+	prelude::{collections::BTreeMap, vec::Vec},
 	IntoPortable, MetaType, PortableRegistry, Registry,
 };
 
@@ -50,26 +50,10 @@ pub struct RuntimeMetadataV15 {
 	pub ty: <PortableForm as Form>::Type,
 	/// Metadata of the Runtime API.
 	pub apis: Vec<RuntimeApiMetadata<PortableForm>>,
-	/// The type of the outer `RuntimeCall` enum.
-	pub call_enum_ty: <PortableForm as Form>::Type,
-	/// The type of the outer `RuntimeEvent` enum.
-	pub event_enum_ty: <PortableForm as Form>::Type,
-	/// The module error type of the
-	/// [`DispatchError::Module`](https://docs.rs/sp-runtime/24.0.0/sp_runtime/enum.DispatchError.html#variant.Module) variant.
-	///
-	/// The `Module` variant will be 5 scale encoded bytes which are normally decoded into
-	/// an `{ index: u8, error: [u8; 4] }` struct. This type ID points to an enum type which instead
-	/// interprets the first `index` byte as a pallet variant, and the remaining `error` bytes as the
-	/// appropriate `pallet::Error` type. It is an equally valid way to decode the error bytes, and
-	/// can be more informative.
-	///
-	/// # Note
-	///
-	/// - This type cannot be used directly to decode `sp_runtime::DispatchError` from the
-	///   chain. It provides just the information needed to decode `sp_runtime::DispatchError::Module`.
-	/// - Decoding the 5 error bytes into this type will not always lead to all of the bytes being consumed;
-	///   many error types do not require all of the bytes to represent them fully.
-	pub module_error_enum_ty: <PortableForm as Form>::Type,
+	/// The outer enums types as found in the runtime.
+	pub outer_enums: OuterEnums<PortableForm>,
+	/// Allows users to add custom types to the metadata.
+	pub custom: CustomMetadata<PortableForm>,
 }
 
 impl RuntimeMetadataV15 {
@@ -79,27 +63,25 @@ impl RuntimeMetadataV15 {
 		extrinsic: ExtrinsicMetadata,
 		runtime_type: MetaType,
 		apis: Vec<RuntimeApiMetadata>,
-		call_enum_ty: MetaType,
-		event_enum_ty: MetaType,
-		module_error_enum_ty: MetaType,
+		outer_enums: OuterEnums,
+		custom: CustomMetadata,
 	) -> Self {
 		let mut registry = Registry::new();
 		let pallets = registry.map_into_portable(pallets);
 		let extrinsic = extrinsic.into_portable(&mut registry);
 		let ty = registry.register_type(&runtime_type);
 		let apis = registry.map_into_portable(apis);
-		let call_enum_ty = registry.register_type(&call_enum_ty);
-		let event_enum_ty = registry.register_type(&event_enum_ty);
-		let module_error_enum_ty = registry.register_type(&module_error_enum_ty);
+		let outer_enums = outer_enums.into_portable(&mut registry);
+		let custom = custom.into_portable(&mut registry);
+
 		Self {
 			types: registry.into(),
 			pallets,
 			extrinsic,
 			ty,
 			apis,
-			call_enum_ty,
-			event_enum_ty,
-			module_error_enum_ty,
+			outer_enums,
+			custom,
 		}
 	}
 }
@@ -541,5 +523,103 @@ impl IntoPortable for PalletErrorMetadata {
 impl From<MetaType> for PalletErrorMetadata {
 	fn from(ty: MetaType) -> Self {
 		Self { ty }
+	}
+}
+
+/// Metadata for custom types.
+///
+/// This map associates a string key to a `CustomValueMetadata`.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct CustomMetadata<T: Form = MetaForm> {
+	/// The custom map.
+	pub map: BTreeMap<T::String, CustomValueMetadata<T>>,
+}
+
+impl IntoPortable for CustomMetadata {
+	type Output = CustomMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		let map = self
+			.map
+			.into_iter()
+			.map(|(key, value)| (key.into_portable(registry), value.into_portable(registry)))
+			.collect();
+
+		CustomMetadata { map }
+	}
+}
+
+/// The associated value of a custom metadata type.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct CustomValueMetadata<T: Form = MetaForm> {
+	/// The custom type.
+	pub ty: T::Type,
+	/// The custom value of this type.
+	pub value: Vec<u8>,
+}
+
+impl IntoPortable for CustomValueMetadata {
+	type Output = CustomValueMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		CustomValueMetadata {
+			ty: registry.register_type(&self.ty),
+			value: self.value,
+		}
+	}
+}
+
+/// The type of the outer enums.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct OuterEnums<T: Form = MetaForm> {
+	/// The type of the outer `RuntimeCall` enum.
+	pub call_enum_ty: T::Type,
+	/// The type of the outer `RuntimeEvent` enum.
+	pub event_enum_ty: T::Type,
+	/// The module error type of the
+	/// [`DispatchError::Module`](https://docs.rs/sp-runtime/24.0.0/sp_runtime/enum.DispatchError.html#variant.Module) variant.
+	///
+	/// The `Module` variant will be 5 scale encoded bytes which are normally decoded into
+	/// an `{ index: u8, error: [u8; 4] }` struct. This type ID points to an enum type which instead
+	/// interprets the first `index` byte as a pallet variant, and the remaining `error` bytes as the
+	/// appropriate `pallet::Error` type. It is an equally valid way to decode the error bytes, and
+	/// can be more informative.
+	///
+	/// # Note
+	///
+	/// - This type cannot be used directly to decode `sp_runtime::DispatchError` from the
+	///   chain. It provides just the information needed to decode `sp_runtime::DispatchError::Module`.
+	/// - Decoding the 5 error bytes into this type will not always lead to all of the bytes being consumed;
+	///   many error types do not require all of the bytes to represent them fully.
+	pub module_error_enum_ty: T::Type,
+}
+
+impl IntoPortable for OuterEnums {
+	type Output = OuterEnums<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		OuterEnums {
+			call_enum_ty: registry.register_type(&self.call_enum_ty),
+			event_enum_ty: registry.register_type(&self.event_enum_ty),
+			module_error_enum_ty: registry.register_type(&self.module_error_enum_ty),
+		}
 	}
 }
