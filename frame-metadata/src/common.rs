@@ -20,12 +20,11 @@ use codec::Decode;
 #[cfg(feature = "serde_full")]
 use serde::Serialize;
 
-use super::{RuntimeMetadataPrefixed, META_RESERVED};
 use codec::Encode;
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
-	prelude::{collections::BTreeMap, vec::Vec},
-	IntoPortable, MetaType, PortableRegistry, Registry,
+	prelude::vec::Vec,
+	IntoPortable, MetaType, Registry,
 };
 
 /// Metadata of an extrinsic's signed extension.
