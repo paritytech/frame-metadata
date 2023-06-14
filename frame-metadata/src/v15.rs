@@ -182,10 +182,16 @@ impl IntoPortable for RuntimeApiMethodParamMetadata {
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
 pub struct ExtrinsicMetadata<T: Form = MetaForm> {
-	/// The type of the extrinsic.
-	pub ty: T::Type,
 	/// Extrinsic version.
 	pub version: u8,
+	/// The type of the address that signes the extrinsic
+	pub address_ty: T::Type,
+	/// The type of the outermost Call enum.
+	pub call_ty: T::Type,
+	/// The type of the extrinsic's signature.
+	pub signature_ty: T::Type,
+	/// The type of the outermost Extra enum.
+	pub extra_ty: T::Type,
 	/// The signed extensions in the order they appear in the extrinsic.
 	pub signed_extensions: Vec<SignedExtensionMetadata<T>>,
 }
@@ -195,8 +201,11 @@ impl IntoPortable for ExtrinsicMetadata {
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		ExtrinsicMetadata {
-			ty: registry.register_type(&self.ty),
 			version: self.version,
+			address_ty: registry.register_type(&self.address_ty),
+			call_ty: registry.register_type(&self.call_ty),
+			signature_ty: registry.register_type(&self.signature_ty),
+			extra_ty: registry.register_type(&self.extra_ty),
 			signed_extensions: registry.map_into_portable(self.signed_extensions),
 		}
 	}
