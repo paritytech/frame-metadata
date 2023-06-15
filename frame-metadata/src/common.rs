@@ -16,11 +16,15 @@
 //! Shared metadata types between different versions.
 
 #[cfg(feature = "decode")]
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 use codec::Decode;
 #[cfg(feature = "serde_full")]
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 use serde::Serialize;
 
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 use codec::Encode;
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
 	prelude::vec::Vec,
