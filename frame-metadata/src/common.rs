@@ -28,6 +28,7 @@ use scale_info::{
 };
 
 /// Metadata of an extrinsic's signed extension.
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -44,6 +45,7 @@ pub struct SignedExtensionMetadata<T: Form = MetaForm> {
 	pub additional_signed: T::Type,
 }
 
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 impl IntoPortable for SignedExtensionMetadata {
 	type Output = SignedExtensionMetadata<PortableForm>;
 
@@ -57,6 +59,7 @@ impl IntoPortable for SignedExtensionMetadata {
 }
 
 /// All metadata of the pallet's storage.
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -71,6 +74,7 @@ pub struct PalletStorageMetadata<T: Form = MetaForm> {
 	pub entries: Vec<StorageEntryMetadata<T>>,
 }
 
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 impl IntoPortable for PalletStorageMetadata {
 	type Output = PalletStorageMetadata<PortableForm>;
 
@@ -83,6 +87,7 @@ impl IntoPortable for PalletStorageMetadata {
 }
 
 /// Metadata about one storage entry.
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -103,6 +108,7 @@ pub struct StorageEntryMetadata<T: Form = MetaForm> {
 	pub docs: Vec<T::String>,
 }
 
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 impl IntoPortable for StorageEntryMetadata {
 	type Output = StorageEntryMetadata<PortableForm>;
 
@@ -122,6 +128,7 @@ impl IntoPortable for StorageEntryMetadata {
 ///
 /// `Optional` means you should expect an `Option<T>`, with `None` returned if the key is not present.
 /// `Default` means you should expect a `T` with the default value of default if the key is not present.
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -133,6 +140,7 @@ pub enum StorageEntryModifier {
 }
 
 /// Hasher used by storage maps
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -154,6 +162,7 @@ pub enum StorageHasher {
 }
 
 /// A type of storage value.
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -175,6 +184,7 @@ pub enum StorageEntryType<T: Form = MetaForm> {
 	},
 }
 
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 impl IntoPortable for StorageEntryType {
 	type Output = StorageEntryType<PortableForm>;
 
@@ -195,6 +205,7 @@ impl IntoPortable for StorageEntryType {
 }
 
 /// Metadata for all calls in a pallet
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -207,6 +218,7 @@ pub struct PalletCallMetadata<T: Form = MetaForm> {
 	pub ty: T::Type,
 }
 
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 impl IntoPortable for PalletCallMetadata {
 	type Output = PalletCallMetadata<PortableForm>;
 
@@ -217,6 +229,7 @@ impl IntoPortable for PalletCallMetadata {
 	}
 }
 
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 impl From<MetaType> for PalletCallMetadata {
 	fn from(ty: MetaType) -> Self {
 		Self { ty }
@@ -224,6 +237,7 @@ impl From<MetaType> for PalletCallMetadata {
 }
 
 /// Metadata about the pallet Event type.
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -232,6 +246,7 @@ pub struct PalletEventMetadata<T: Form = MetaForm> {
 	pub ty: T::Type,
 }
 
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 impl IntoPortable for PalletEventMetadata {
 	type Output = PalletEventMetadata<PortableForm>;
 
@@ -242,6 +257,7 @@ impl IntoPortable for PalletEventMetadata {
 	}
 }
 
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 impl From<MetaType> for PalletEventMetadata {
 	fn from(ty: MetaType) -> Self {
 		Self { ty }
@@ -249,6 +265,7 @@ impl From<MetaType> for PalletEventMetadata {
 }
 
 /// Metadata about one pallet constant.
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -267,6 +284,7 @@ pub struct PalletConstantMetadata<T: Form = MetaForm> {
 	pub docs: Vec<T::String>,
 }
 
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 impl IntoPortable for PalletConstantMetadata {
 	type Output = PalletConstantMetadata<PortableForm>;
 
@@ -281,6 +299,7 @@ impl IntoPortable for PalletConstantMetadata {
 }
 
 /// Metadata about a pallet error.
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -290,6 +309,7 @@ pub struct PalletErrorMetadata<T: Form = MetaForm> {
 	pub ty: T::Type,
 }
 
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 impl IntoPortable for PalletErrorMetadata {
 	type Output = PalletErrorMetadata<PortableForm>;
 
@@ -300,6 +320,7 @@ impl IntoPortable for PalletErrorMetadata {
 	}
 }
 
+#[cfg(any(feature = "v14", feature = "v15-unstable"))]
 impl From<MetaType> for PalletErrorMetadata {
 	fn from(ty: MetaType) -> Self {
 		Self { ty }
