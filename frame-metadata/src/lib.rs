@@ -97,8 +97,6 @@ pub mod v15;
 #[cfg(feature = "v14")]
 pub use self::v14::*;
 
-mod common;
-
 /// Metadata prefix.
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warning for endianness.
 
