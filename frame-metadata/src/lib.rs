@@ -19,15 +19,7 @@
 #![warn(missing_docs)]
 #[cfg(all(
 	any(feature = "decode", feature = "serde_full"),
-	any(
-		feature = "v13",
-		feature = "v12",
-		feature = "v11",
-		feature = "v10",
-		feature = "v9",
-		feature = "v8",
-		feature = "legacy"
-	),
+	any(feature = "legacy"),
 	not(feature = "std")
 ))]
 compile_error!("decode and serde_full features prior to v14 require std");
@@ -48,54 +40,46 @@ cfg_if::cfg_if! {
 use codec::{Encode, Output};
 
 /// A type that decodes to a different type than it encodes.
-#[cfg(any(
-	feature = "v13",
-	feature = "v12",
-	feature = "v11",
-	feature = "v10",
-	feature = "v9",
-	feature = "v8",
-	feature = "legacy"
-))]
+#[cfg(feature = "legacy")]
 pub mod decode_different;
 
 /// Metadata v8
-#[cfg(feature = "v8")]
+#[cfg(feature = "legacy")]
 pub mod v8;
 
 /// Metadata v9
-#[cfg(feature = "v9")]
+#[cfg(feature = "legacy")]
 pub mod v9;
 
 /// Metadata v10
-#[cfg(feature = "v10")]
+#[cfg(feature = "legacy")]
 pub mod v10;
 
 /// Metadata v11
-#[cfg(feature = "v11")]
+#[cfg(feature = "legacy")]
 pub mod v11;
 
 /// Metadata v12
-#[cfg(feature = "v12")]
+#[cfg(feature = "legacy")]
 pub mod v12;
 
 /// Metadata v13
-#[cfg(feature = "v13")]
+#[cfg(feature = "legacy")]
 pub mod v13;
 
 /// Metadata v14
-#[cfg(feature = "v14")]
+#[cfg(feature = "current")]
 pub mod v14;
 
 /// Metadata v15
-#[cfg(feature = "v15-unstable")]
+#[cfg(feature = "current")]
 pub mod v15;
 
 // Reexport all the types from the latest version.
 //
 // When a new version becomes available, update this.
-#[cfg(feature = "v14")]
-pub use self::v14::*;
+#[cfg(feature = "current")]
+pub use self::v15::*;
 
 /// Metadata prefix.
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warning for endianness.
@@ -136,52 +120,52 @@ pub enum RuntimeMetadata {
 	/// Version 7 for runtime metadata. No longer used.
 	V7(RuntimeMetadataDeprecated),
 	/// Version 8 for runtime metadata.
-	#[cfg(any(feature = "v8", feature = "legacy"))]
+	#[cfg(feature = "legacy")]
 	V8(v8::RuntimeMetadataV8),
 	/// Version 8 for runtime metadata, as raw encoded bytes.
-	#[cfg(not(feature = "v8"))]
+	#[cfg(not(feature = "legacy"))]
 	V8(OpaqueMetadata),
 	/// Version 9 for runtime metadata.
-	#[cfg(any(feature = "v9", feature = "legacy"))]
+	#[cfg(feature = "legacy")]
 	V9(v9::RuntimeMetadataV9),
 	/// Version 9 for runtime metadata, as raw encoded bytes.
-	#[cfg(not(feature = "v9"))]
+	#[cfg(not(feature = "legacy"))]
 	V9(OpaqueMetadata),
 	/// Version 10 for runtime metadata.
-	#[cfg(any(feature = "v10", feature = "legacy"))]
+	#[cfg(feature = "legacy")]
 	V10(v10::RuntimeMetadataV10),
 	/// Version 10 for runtime metadata, as raw encoded bytes.
-	#[cfg(not(feature = "v10"))]
+	#[cfg(not(feature = "legacy"))]
 	V10(OpaqueMetadata),
 	/// Version 11 for runtime metadata.
-	#[cfg(any(feature = "v11", feature = "legacy"))]
+	#[cfg(feature = "legacy")]
 	V11(v11::RuntimeMetadataV11),
 	/// Version 11 for runtime metadata, as raw encoded bytes.
-	#[cfg(not(feature = "v11"))]
+	#[cfg(not(feature = "legacy"))]
 	V11(OpaqueMetadata),
 	/// Version 12 for runtime metadata
-	#[cfg(any(feature = "v12", feature = "legacy"))]
+	#[cfg(feature = "legacy")]
 	V12(v12::RuntimeMetadataV12),
 	/// Version 12 for runtime metadata, as raw encoded bytes.
-	#[cfg(not(feature = "v12"))]
+	#[cfg(not(feature = "legacy"))]
 	V12(OpaqueMetadata),
 	/// Version 13 for runtime metadata.
-	#[cfg(any(feature = "v13", feature = "legacy"))]
+	#[cfg(feature = "legacy")]
 	V13(v13::RuntimeMetadataV13),
 	/// Version 13 for runtime metadata, as raw encoded bytes.
-	#[cfg(not(feature = "v13"))]
+	#[cfg(not(feature = "legacy"))]
 	V13(OpaqueMetadata),
 	/// Version 14 for runtime metadata.
-	#[cfg(feature = "v14")]
+	#[cfg(feature = "current")]
 	V14(v14::RuntimeMetadataV14),
 	/// Version 14 for runtime metadata, as raw encoded bytes.
-	#[cfg(not(feature = "v14"))]
+	#[cfg(not(feature = "current"))]
 	V14(OpaqueMetadata),
 	/// Version 15 for runtime metadata.
-	#[cfg(feature = "v15-unstable")]
+	#[cfg(feature = "current")]
 	V15(v15::RuntimeMetadataV15),
 	/// Version 15 for runtime metadata, as raw encoded bytes.
-	#[cfg(not(feature = "v15-unstable"))]
+	#[cfg(not(feature = "current"))]
 	V15(OpaqueMetadata),
 }
 
