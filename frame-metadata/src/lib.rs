@@ -19,7 +19,7 @@
 #![warn(missing_docs)]
 #[cfg(all(
 	any(feature = "decode", feature = "serde_full"),
-	any(feature = "legacy"),
+	feature = "legacy",
 	not(feature = "std")
 ))]
 compile_error!("decode and serde_full features prior to v14 require std");
