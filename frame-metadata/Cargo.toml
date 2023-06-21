@@ -28,7 +28,7 @@ legacy = []
 current = ["scale-info"]
 
 # Unstable next metadata version.
-unstable = ["scale-info"]
+unstable = ["current"]
 
 # Serde support without relying on std features
 serde_full = [

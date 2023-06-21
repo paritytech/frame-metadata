@@ -72,7 +72,7 @@ pub mod v13;
 pub mod v14;
 
 /// Metadata v15
-#[cfg(all(feature = "unstable", feature = "current"))]
+#[cfg(feature = "unstable")]
 pub mod v15;
 
 // Reexport all the types from the latest version.
@@ -162,10 +162,10 @@ pub enum RuntimeMetadata {
 	#[cfg(not(feature = "current"))]
 	V14(OpaqueMetadata),
 	/// Version 15 for runtime metadata.
-	#[cfg(all(feature = "unstable", feature = "current"))]
+	#[cfg(feature = "unstable")]
 	V15(v15::RuntimeMetadataV15),
 	/// Version 15 for runtime metadata, as raw encoded bytes.
-	#[cfg(not(all(feature = "unstable", feature = "current")))]
+	#[cfg(not(feature = "unstable"))]
 	V15(OpaqueMetadata),
 }
 
