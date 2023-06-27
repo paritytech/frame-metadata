@@ -137,7 +137,7 @@ jobs:
           version: 0.5
 
       - name: Checking wasm32 (v14)
-        run: cargo hack check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --features v14 --skip legacy,v8,v9,v10,v11,v12,v13 --depth 4 --target wasm32-unknown-unknown
+        run: cargo hack check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --features current --skip legacy --depth 4 --target wasm32-unknown-unknown
 
       - name: Checking wasm32 (all features)
         run: cargo hack check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --skip decode,serde_full --depth 4 --target wasm32-unknown-unknown
@@ -167,7 +167,7 @@ jobs:
           version: 0.5
 
       - name: Checking v14 feature combinations (native)
-        run: cargo hack check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --features v14 --skip legacy,v8,v9,v10,v11,v12,v13 --depth 4
+        run: cargo hack check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --features current --skip legacy --depth 4
 
       - name: Checking feature combinations excluding decode/serde_full (native)
         run: cargo hack check --manifest-path ./frame-metadata/Cargo.toml --feature-powerset --no-dev-deps --skip decode,serde_full --depth 4
