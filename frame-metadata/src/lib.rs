@@ -75,12 +75,6 @@ pub mod v14;
 #[cfg(feature = "current")]
 pub mod v15;
 
-// Reexport all the types from the latest version.
-//
-// When a new version becomes available, update this.
-#[cfg(feature = "current")]
-pub use self::v15::*;
-
 /// Metadata prefix.
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warning for endianness.
 
