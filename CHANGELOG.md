@@ -8,18 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [16.0.0] - 2023-06-29
+
+### Changed
+
+- Stabilize V15 metadata [#66](https://github.com/paritytech/frame-metadata/pull/66)
+
 ## [15.2.0] - 2023-06-27
 
 ### Added
 
-- V15: Add custom values to the metadata  ([#61](https://github.com/paritytech/subxt/pull/61))
-- v15/metadata: Add outer enum types for calls, events, errors  ([#57](https://github.com/paritytech/subxt/pull/57))
-- Metadata V15: Enrich extrinsic type info for decoding  ([#56](https://github.com/paritytech/subxt/pull/56))
+- V15: Add custom values to the metadata  [#61](https://github.com/paritytech/frame-metadata/pull/61)
+- v15/metadata: Add outer enum types for calls, events, errors [#57](https://github.com/paritytech/frame-metadata/pull/57)
+- Metadata V15: Enrich extrinsic type info for decoding [#56](https://github.com/paritytech/frame-metadata/pull/56)
 
 ### Changed
 
-- Simplify feature-flag and use common types  ([#62](https://github.com/paritytech/subxt/pull/62))
-- v15: Rename `error_enum_ty` to `module_error_enum_ty`  ([#60](https://github.com/paritytech/subxt/pull/60))
+- Simplify feature-flag and use common types [#62](https://github.com/paritytech/frame-metadata/pull/62)
+- v15: Rename `error_enum_ty` to `module_error_enum_ty` [#60](https://github.com/paritytech/frame-metadata/pull/60)
 
 ## [15.1.0] - 2023-03-30
 
