@@ -72,14 +72,8 @@ pub mod v13;
 pub mod v14;
 
 /// Metadata v15
-#[cfg(feature = "unstable")]
-pub mod v15;
-
-// Reexport all the types from the latest version.
-//
-// When a new version becomes available, update this.
 #[cfg(feature = "current")]
-pub use self::v14::*;
+pub mod v15;
 
 /// Metadata prefix.
 pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warning for endianness.
@@ -162,10 +156,10 @@ pub enum RuntimeMetadata {
 	#[cfg(not(feature = "current"))]
 	V14(OpaqueMetadata),
 	/// Version 15 for runtime metadata.
-	#[cfg(feature = "unstable")]
+	#[cfg(feature = "current")]
 	V15(v15::RuntimeMetadataV15),
 	/// Version 15 for runtime metadata, as raw encoded bytes.
-	#[cfg(not(feature = "unstable"))]
+	#[cfg(not(feature = "current"))]
 	V15(OpaqueMetadata),
 }
 
