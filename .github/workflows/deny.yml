@@ -25,6 +25,6 @@ jobs:
           fetch-depth:  5
           submodules:   recursive
       - name:           Cargo deny
-        uses:           EmbarkStudios/cargo-deny-action@v1
+        uses:           EmbarkStudios/cargo-deny-action@v2
         with:
           command:      "check --hide-inclusion-graph"
