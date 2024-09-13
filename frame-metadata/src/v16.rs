@@ -19,18 +19,14 @@ use codec::Decode;
 use serde::Serialize;
 
 use super::{RuntimeMetadataPrefixed, META_RESERVED};
-use codec::Encode;
+use codec::{Compact, Encode};
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
 	prelude::{collections::BTreeMap, vec::Vec},
 	IntoPortable, MetaType, PortableRegistry, Registry,
 };
 
-pub use super::v14::{
-	PalletCallMetadata, PalletConstantMetadata, PalletErrorMetadata, PalletEventMetadata,
-	PalletStorageMetadata, StorageEntryMetadata, StorageEntryModifier, StorageEntryType,
-	StorageHasher,
-};
+pub use super::v14::{StorageEntryModifier, StorageEntryType, StorageHasher};
 
 /// Latest runtime metadata
 pub type RuntimeMetadataLastVersion = RuntimeMetadataV16;
@@ -107,6 +103,8 @@ pub struct RuntimeApiMetadata<T: Form = MetaForm> {
 	pub methods: Vec<RuntimeApiMethodMetadata<T>>,
 	/// Trait documentation.
 	pub docs: Vec<T::String>,
+	/// Deprecation info
+	pub deprecation_info: DeprecationStatus<T>,
 }
 
 impl IntoPortable for RuntimeApiMetadata {
@@ -117,6 +115,7 @@ impl IntoPortable for RuntimeApiMetadata {
 			name: self.name.into_portable(registry),
 			methods: registry.map_into_portable(self.methods),
 			docs: registry.map_into_portable(self.docs),
+			deprecation_info: self.deprecation_info.into_portable(registry),
 		}
 	}
 }
@@ -138,6 +137,8 @@ pub struct RuntimeApiMethodMetadata<T: Form = MetaForm> {
 	pub output: T::Type,
 	/// Method documentation.
 	pub docs: Vec<T::String>,
+	/// Deprecation info
+	pub deprecation_info: DeprecationStatus<T>,
 }
 
 impl IntoPortable for RuntimeApiMethodMetadata {
@@ -149,6 +150,7 @@ impl IntoPortable for RuntimeApiMethodMetadata {
 			inputs: registry.map_into_portable(self.inputs),
 			output: registry.register_type(&self.output),
 			docs: registry.map_into_portable(self.docs),
+			deprecation_info: self.deprecation_info.into_portable(registry),
 		}
 	}
 }
@@ -268,12 +270,14 @@ pub struct PalletMetadata<T: Form = MetaForm> {
 	/// Pallet error metadata.
 	pub error: Option<PalletErrorMetadata<T>>,
 	/// Config's trait associated types.
-	pub associated_types: Vec<PalletAssociatedTypeMetadataIR<T>>,
+	pub associated_types: Vec<PalletAssociatedTypeMetadata<T>>,
 	/// Define the index of the pallet, this index will be used for the encoding of pallet event,
 	/// call and origin variants.
 	pub index: u8,
 	/// Pallet documentation.
 	pub docs: Vec<T::String>,
+	/// Deprecation info
+	pub deprecation_info: DeprecationStatus<T>,
 }
 
 impl IntoPortable for PalletMetadata {
@@ -290,13 +294,197 @@ impl IntoPortable for PalletMetadata {
 			associated_types: registry.map_into_portable(self.associated_types),
 			index: self.index,
 			docs: registry.map_into_portable(self.docs),
+			deprecation_info: self.deprecation_info.into_portable(registry),
+		}
+	}
+}
+
+/// Metadata for all calls in a pallet
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct PalletCallMetadata<T: Form = MetaForm> {
+	/// The corresponding enum type for the pallet call.
+	pub ty: T::Type,
+	/// Deprecation status of the pallet call
+	pub deprecation_info: DeprecationInfo<T>,
+}
+
+impl IntoPortable for PalletCallMetadata {
+	type Output = PalletCallMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		PalletCallMetadata {
+			ty: registry.register_type(&self.ty),
+			deprecation_info: self.deprecation_info.into_portable(registry),
+		}
+	}
+}
+
+/// All metadata of the pallet's storage.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct PalletStorageMetadata<T: Form = MetaForm> {
+	/// The common prefix used by all storage entries.
+	pub prefix: T::String,
+	/// Metadata for all storage entries.
+	pub entries: Vec<StorageEntryMetadata<T>>,
+}
+
+impl IntoPortable for PalletStorageMetadata {
+	type Output = PalletStorageMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		PalletStorageMetadata {
+			prefix: self.prefix.into_portable(registry),
+			entries: registry.map_into_portable(self.entries),
+		}
+	}
+}
+
+/// Metadata about one storage entry.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct StorageEntryMetadata<T: Form = MetaForm> {
+	/// Variable name of the storage entry.
+	pub name: T::String,
+	/// An `Option` modifier of that storage entry.
+	pub modifier: StorageEntryModifier,
+	/// Type of the value stored in the entry.
+	pub ty: StorageEntryType<T>,
+	/// Default value (SCALE encoded).
+	pub default: Vec<u8>,
+	/// Storage entry documentation.
+	pub docs: Vec<T::String>,
+	/// Deprecation info
+	pub deprecation_info: DeprecationStatus<T>,
+}
+
+impl IntoPortable for StorageEntryMetadata {
+	type Output = StorageEntryMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		StorageEntryMetadata {
+			name: self.name.into_portable(registry),
+			modifier: self.modifier,
+			ty: self.ty.into_portable(registry),
+			default: self.default,
+			docs: registry.map_into_portable(self.docs),
+			deprecation_info: self.deprecation_info.into_portable(registry),
+		}
+	}
+}
+
+/// Metadata about the pallet Event type.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct PalletEventMetadata<T: Form = MetaForm> {
+	/// The Event type.
+	pub ty: T::Type,
+	/// Deprecation info
+	pub deprecation_info: DeprecationInfo<T>,
+}
+
+impl IntoPortable for PalletEventMetadata {
+	type Output = PalletEventMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		PalletEventMetadata {
+			ty: registry.register_type(&self.ty),
+			deprecation_info: self.deprecation_info.into_portable(registry),
+		}
+	}
+}
+
+/// Metadata about one pallet constant.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct PalletConstantMetadata<T: Form = MetaForm> {
+	/// Name of the pallet constant.
+	pub name: T::String,
+	/// Type of the pallet constant.
+	pub ty: T::Type,
+	/// Value stored in the constant (SCALE encoded).
+	pub value: Vec<u8>,
+	/// Documentation of the constant.
+	pub docs: Vec<T::String>,
+	/// Deprecation info
+	pub deprecation_info: DeprecationStatus<T>,
+}
+
+impl IntoPortable for PalletConstantMetadata {
+	type Output = PalletConstantMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		PalletConstantMetadata {
+			name: self.name.into_portable(registry),
+			ty: registry.register_type(&self.ty),
+			value: self.value,
+			docs: registry.map_into_portable(self.docs),
+			deprecation_info: self.deprecation_info.into_portable(registry),
+		}
+	}
+}
+
+/// Metadata about a pallet error.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct PalletErrorMetadata<T: Form = MetaForm> {
+	/// The error type information.
+	pub ty: T::Type,
+	/// Deprecation info
+	pub deprecation_info: DeprecationInfo<T>,
+}
+
+impl IntoPortable for PalletErrorMetadata {
+	type Output = PalletErrorMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		PalletErrorMetadata {
+			ty: registry.register_type(&self.ty),
+			deprecation_info: self.deprecation_info.into_portable(registry),
 		}
 	}
 }
 
 /// Metadata of a pallet's associated type.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
-pub struct PalletAssociatedTypeMetadataIR<T: Form = MetaForm> {
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct PalletAssociatedTypeMetadata<T: Form = MetaForm> {
 	/// The name of the associated type.
 	pub name: T::String,
 	/// The type of the associated type.
@@ -305,11 +493,11 @@ pub struct PalletAssociatedTypeMetadataIR<T: Form = MetaForm> {
 	pub docs: Vec<T::String>,
 }
 
-impl IntoPortable for PalletAssociatedTypeMetadataIR {
-	type Output = PalletAssociatedTypeMetadataIR<PortableForm>;
+impl IntoPortable for PalletAssociatedTypeMetadata {
+	type Output = PalletAssociatedTypeMetadata<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		PalletAssociatedTypeMetadataIR {
+		PalletAssociatedTypeMetadata {
 			name: self.name.into_portable(registry),
 			ty: registry.register_type(&self.ty),
 			docs: registry.map_into_portable(self.docs),
@@ -411,6 +599,78 @@ impl IntoPortable for OuterEnums {
 			call_enum_ty: registry.register_type(&self.call_enum_ty),
 			event_enum_ty: registry.register_type(&self.event_enum_ty),
 			error_enum_ty: registry.register_type(&self.error_enum_ty),
+		}
+	}
+}
+
+/// Deprecation status for an entry inside the metadata.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub enum DeprecationStatus<T: Form = MetaForm> {
+	/// Entry is not deprecated
+	NotDeprecated,
+	/// Deprecated without a note.
+	DeprecatedWithoutNote,
+	/// Entry is deprecated with an note and an optional `since` field.
+	Deprecated {
+		/// Note explaining the deprecation
+		note: T::String,
+		/// Optional value for denoting version when the deprecation occurred.
+		since: Option<T::String>,
+	},
+}
+impl IntoPortable for DeprecationStatus {
+	type Output = DeprecationStatus<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		match self {
+			Self::Deprecated { note, since } => {
+				let note = note.into_portable(registry);
+				let since = since.map(|x| x.into_portable(registry));
+				DeprecationStatus::Deprecated { note, since }
+			}
+			Self::DeprecatedWithoutNote => DeprecationStatus::DeprecatedWithoutNote,
+			Self::NotDeprecated => DeprecationStatus::NotDeprecated,
+		}
+	}
+}
+/// Deprecation info for an enums/errors/calls.
+/// Denotes full/partial deprecation of the type
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub enum DeprecationInfo<T: Form = MetaForm> {
+	/// Type is not deprecated
+	NotDeprecated,
+	/// Entry is fully deprecated.
+	ItemDeprecated(DeprecationStatus<T>),
+	/// Entry is partially deprecated.
+	VariantsDeprecated(BTreeMap<Compact<u8>, DeprecationStatus<T>>),
+}
+impl IntoPortable for DeprecationInfo {
+	type Output = DeprecationInfo<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		match self {
+			Self::VariantsDeprecated(entries) => {
+				let entries = entries
+					.into_iter()
+					.map(|(k, entry)| (k, entry.into_portable(registry)));
+				DeprecationInfo::VariantsDeprecated(entries.collect())
+			}
+			Self::ItemDeprecated(deprecation) => {
+				DeprecationInfo::ItemDeprecated(deprecation.into_portable(registry))
+			}
+			Self::NotDeprecated => DeprecationInfo::NotDeprecated,
 		}
 	}
 }
