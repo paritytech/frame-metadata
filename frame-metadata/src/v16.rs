@@ -23,7 +23,7 @@ use codec::{Compact, Encode};
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
 	prelude::{collections::BTreeMap, vec::Vec},
-	IntoPortable, MetaType, PortableRegistry, Registry,
+	IntoPortable, PortableRegistry, Registry,
 };
 
 pub use super::v14::{StorageEntryModifier, StorageEntryType, StorageHasher};
@@ -48,8 +48,6 @@ pub struct RuntimeMetadataV16 {
 	pub pallets: Vec<PalletMetadata<PortableForm>>,
 	/// Metadata of the extrinsic.
 	pub extrinsic: ExtrinsicMetadata<PortableForm>,
-	/// The type of the `Runtime`.
-	pub ty: <PortableForm as Form>::Type,
 	/// Metadata of the Runtime API.
 	pub apis: Vec<RuntimeApiMetadata<PortableForm>>,
 	/// The outer enums types as found in the runtime.
@@ -63,7 +61,6 @@ impl RuntimeMetadataV16 {
 	pub fn new(
 		pallets: Vec<PalletMetadata>,
 		extrinsic: ExtrinsicMetadata,
-		runtime_type: MetaType,
 		apis: Vec<RuntimeApiMetadata>,
 		outer_enums: OuterEnums,
 		custom: CustomMetadata,
@@ -71,7 +68,6 @@ impl RuntimeMetadataV16 {
 		let mut registry = Registry::new();
 		let pallets = registry.map_into_portable(pallets);
 		let extrinsic = extrinsic.into_portable(&mut registry);
-		let ty = registry.register_type(&runtime_type);
 		let apis = registry.map_into_portable(apis);
 		let outer_enums = outer_enums.into_portable(&mut registry);
 		let custom = custom.into_portable(&mut registry);
@@ -80,7 +76,6 @@ impl RuntimeMetadataV16 {
 			types: registry.into(),
 			pallets,
 			extrinsic,
-			ty,
 			apis,
 			outer_enums,
 			custom,
