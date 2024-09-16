@@ -200,8 +200,8 @@ pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	pub signature_ty: T::Type,
 	/// The type of the outermost Extra enum.
 	pub extra_ty: T::Type,
-	/// The signed extensions in the order they appear in the extrinsic.
-	pub signed_extensions: Vec<SignedExtensionMetadata<T>>,
+	/// The transaction extensions in the order they appear in the extrinsic.
+	pub transaction_extensions: Vec<TransactionExtensionMetadata<T>>,
 }
 
 impl IntoPortable for ExtrinsicMetadata {
@@ -209,17 +209,17 @@ impl IntoPortable for ExtrinsicMetadata {
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		ExtrinsicMetadata {
-			version: self.version,
+			versions: self.versions,
 			address_ty: registry.register_type(&self.address_ty),
 			call_ty: registry.register_type(&self.call_ty),
 			signature_ty: registry.register_type(&self.signature_ty),
 			extra_ty: registry.register_type(&self.extra_ty),
-			signed_extensions: registry.map_into_portable(self.signed_extensions),
+			transaction_extensions: registry.map_into_portable(self.transaction_extensions),
 		}
 	}
 }
 
-/// Metadata of an extrinsic's signed extension.
+/// Metadata of an extrinsic's transaction extension.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -227,20 +227,20 @@ impl IntoPortable for ExtrinsicMetadata {
 	feature = "serde_full",
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
-pub struct SignedExtensionMetadata<T: Form = MetaForm> {
-	/// The unique signed extension identifier, which may be different from the type name.
+pub struct TransactionExtensionMetadata<T: Form = MetaForm> {
+	/// The unique transaction extension identifier, which may be different from the type name.
 	pub identifier: T::String,
-	/// The type of the signed extension, with the data to be included in the extrinsic.
+	/// The type of the transaction extension, with the data to be included in the extrinsic.
 	pub ty: T::Type,
-	/// The type of the additional signed data, with the data to be included in the signed payload
+	/// The type of the additional transaction data, with the data to be included in the signed payload.
 	pub additional_signed: T::Type,
 }
 
-impl IntoPortable for SignedExtensionMetadata {
-	type Output = SignedExtensionMetadata<PortableForm>;
+impl IntoPortable for TransactionExtensionMetadata {
+	type Output = TransactionExtensionMetadata<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		SignedExtensionMetadata {
+		TransactionExtensionMetadata {
 			identifier: self.identifier.into_portable(registry),
 			ty: registry.register_type(&self.ty),
 			additional_signed: registry.register_type(&self.additional_signed),
