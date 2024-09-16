@@ -19,7 +19,7 @@ use codec::Decode;
 use serde::Serialize;
 
 use super::{RuntimeMetadataPrefixed, META_RESERVED};
-use codec::{Compact, Encode};
+use codec::Encode;
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
 	prelude::{collections::BTreeMap, vec::Vec},
@@ -649,7 +649,7 @@ pub enum DeprecationInfo<T: Form = MetaForm> {
 	/// Entry is fully deprecated.
 	ItemDeprecated(DeprecationStatus<T>),
 	/// Entry is partially deprecated.
-	VariantsDeprecated(BTreeMap<Compact<u8>, DeprecationStatus<T>>),
+	VariantsDeprecated(BTreeMap<u8, DeprecationStatus<T>>),
 }
 impl IntoPortable for DeprecationInfo {
 	type Output = DeprecationInfo<PortableForm>;
