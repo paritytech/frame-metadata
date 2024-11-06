@@ -189,8 +189,6 @@ pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	pub versions: Vec<u8>,
 	/// The type of the address that signes the extrinsic
 	pub address_ty: T::Type,
-	/// The type of the outermost Call enum.
-	pub call_ty: T::Type,
 	/// The type of the extrinsic's signature.
 	pub signature_ty: T::Type,
 	/// The transaction extensions in the order they appear in the extrinsic.
@@ -204,7 +202,6 @@ impl IntoPortable for ExtrinsicMetadata {
 		ExtrinsicMetadata {
 			versions: self.versions,
 			address_ty: registry.register_type(&self.address_ty),
-			call_ty: registry.register_type(&self.call_ty),
 			signature_ty: registry.register_type(&self.signature_ty),
 			transaction_extensions: registry.map_into_portable(self.transaction_extensions),
 		}
