@@ -187,7 +187,7 @@ impl IntoPortable for RuntimeApiMethodParamMetadata {
 pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	/// Extrinsic versions.
 	pub versions: Vec<u8>,
-	/// The type of the address that signes the extrinsic
+	/// The type of the address that signs the extrinsic
 	pub address_ty: T::Type,
 	/// The type of the extrinsic's signature.
 	pub signature_ty: T::Type,
