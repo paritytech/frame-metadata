@@ -186,7 +186,9 @@ impl IntoPortable for RuntimeApiMethodParamMetadata {
 )]
 pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	/// Extrinsic versions.
-	pub versions: Vec<u8>,
+	///
+	/// For each supported version number, list the indexes, in order, of the extensions used.
+	pub versions: BTreeMap<u8, Vec<u32>>,
 	/// The type of the address that signs the extrinsic
 	pub address_ty: T::Type,
 	/// The type of the extrinsic's signature.
@@ -217,8 +219,6 @@ impl IntoPortable for ExtrinsicMetadata {
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
 pub struct TransactionExtensionMetadata<T: Form = MetaForm> {
-	/// Extension version.
-	pub version: u8,
 	/// The unique transaction extension identifier, which may be different from the type name.
 	pub identifier: T::String,
 	/// The type of the transaction extension, with the data to be included in the extrinsic.
@@ -232,7 +232,6 @@ impl IntoPortable for TransactionExtensionMetadata {
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		TransactionExtensionMetadata {
-			version: self.version,
 			identifier: self.identifier.into_portable(registry),
 			ty: registry.register_type(&self.ty),
 			implicit: registry.register_type(&self.implicit),
