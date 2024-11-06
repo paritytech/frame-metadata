@@ -221,8 +221,8 @@ pub struct TransactionExtensionMetadata<T: Form = MetaForm> {
 	pub identifier: T::String,
 	/// The type of the transaction extension, with the data to be included in the extrinsic.
 	pub ty: T::Type,
-	/// The type of the additional transaction data, with the data to be included in the signed payload.
-	pub additional_signed: T::Type,
+	/// The type of the implicit data, with the data to be included in the signed payload.
+	pub implicit: T::Type,
 }
 
 impl IntoPortable for TransactionExtensionMetadata {
@@ -232,7 +232,7 @@ impl IntoPortable for TransactionExtensionMetadata {
 		TransactionExtensionMetadata {
 			identifier: self.identifier.into_portable(registry),
 			ty: registry.register_type(&self.ty),
-			additional_signed: registry.register_type(&self.additional_signed),
+			implicit: registry.register_type(&self.implicit),
 		}
 	}
 }
