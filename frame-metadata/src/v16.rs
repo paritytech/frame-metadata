@@ -203,9 +203,9 @@ impl IntoPortable for ExtrinsicMetadata {
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		ExtrinsicMetadata {
-			versions: self.versions,
 			address_ty: registry.register_type(&self.address_ty),
 			signature_ty: registry.register_type(&self.signature_ty),
+			transaction_extensions_by_version: self.transaction_extensions_by_version,
 			transaction_extensions: registry.map_into_portable(self.transaction_extensions),
 		}
 	}
