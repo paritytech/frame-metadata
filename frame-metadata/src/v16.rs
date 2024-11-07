@@ -185,14 +185,15 @@ impl IntoPortable for RuntimeApiMethodParamMetadata {
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
 pub struct ExtrinsicMetadata<T: Form = MetaForm> {
-	/// Extrinsic versions.
-	///
-	/// For each supported version number, list the indexes, in order, of the extensions used.
-	pub versions: BTreeMap<u8, Vec<u32>>,
 	/// The type of the address that signs the extrinsic
 	pub address_ty: T::Type,
 	/// The type of the extrinsic's signature.
 	pub signature_ty: T::Type,
+	/// A mapping of supported extrinsic versions to their respective transaction extension indexes.
+	/// Transaction extensions by supported versions.
+	///
+	/// For each supported version number, list the indexes, in order, of the extensions used.
+	pub transaction_extensions_by_version: BTreeMap<u8, Vec<u32>>,
 	/// The transaction extensions in the order they appear in the extrinsic.
 	pub transaction_extensions: Vec<TransactionExtensionMetadata<T>>,
 }
