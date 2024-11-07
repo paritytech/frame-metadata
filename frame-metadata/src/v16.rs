@@ -191,8 +191,7 @@ pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	pub address_ty: T::Type,
 	/// The type of the extrinsic's signature.
 	pub signature_ty: T::Type,
-	/// A mapping of supported extrinsic versions to their respective transaction extension indexes.
-	/// Transaction extensions by supported versions.
+	/// A mapping of supported transaction extrinsic versions to their respective transaction extension indexes.
 	///
 	/// For each supported version number, list the indexes, in order, of the extensions used.
 	pub transaction_extensions_by_version: BTreeMap<u8, Vec<u32>>,
