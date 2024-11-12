@@ -185,16 +185,16 @@ impl IntoPortable for RuntimeApiMethodParamMetadata {
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
 pub struct ExtrinsicMetadata<T: Form = MetaForm> {
-	/// Extrinsic versions.
+	/// Extrinsic versions supported by the runtime.
 	pub versions: Vec<u8>,
-	/// The type of the address that signes the extrinsic
+	/// The type of the address that signs the extrinsic
 	pub address_ty: T::Type,
-	/// The type of the outermost Call enum.
-	pub call_ty: T::Type,
 	/// The type of the extrinsic's signature.
 	pub signature_ty: T::Type,
-	/// The type of the outermost Extra enum.
-	pub extra_ty: T::Type,
+	/// A mapping of supported transaction extrinsic versions to their respective transaction extension indexes.
+	///
+	/// For each supported version number, list the indexes, in order, of the extensions used.
+	pub transaction_extensions_by_version: BTreeMap<u8, Vec<u32>>,
 	/// The transaction extensions in the order they appear in the extrinsic.
 	pub transaction_extensions: Vec<TransactionExtensionMetadata<T>>,
 }
@@ -206,9 +206,8 @@ impl IntoPortable for ExtrinsicMetadata {
 		ExtrinsicMetadata {
 			versions: self.versions,
 			address_ty: registry.register_type(&self.address_ty),
-			call_ty: registry.register_type(&self.call_ty),
 			signature_ty: registry.register_type(&self.signature_ty),
-			extra_ty: registry.register_type(&self.extra_ty),
+			transaction_extensions_by_version: self.transaction_extensions_by_version,
 			transaction_extensions: registry.map_into_portable(self.transaction_extensions),
 		}
 	}
@@ -227,8 +226,8 @@ pub struct TransactionExtensionMetadata<T: Form = MetaForm> {
 	pub identifier: T::String,
 	/// The type of the transaction extension, with the data to be included in the extrinsic.
 	pub ty: T::Type,
-	/// The type of the additional transaction data, with the data to be included in the signed payload.
-	pub additional_signed: T::Type,
+	/// The type of the implicit data, with the data to be included in the signed payload.
+	pub implicit: T::Type,
 }
 
 impl IntoPortable for TransactionExtensionMetadata {
@@ -238,7 +237,7 @@ impl IntoPortable for TransactionExtensionMetadata {
 		TransactionExtensionMetadata {
 			identifier: self.identifier.into_portable(registry),
 			ty: registry.register_type(&self.ty),
-			additional_signed: registry.register_type(&self.additional_signed),
+			implicit: registry.register_type(&self.implicit),
 		}
 	}
 }
