@@ -185,7 +185,7 @@ impl IntoPortable for RuntimeApiMethodParamMetadata {
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
 pub struct ExtrinsicMetadata<T: Form = MetaForm> {
-	/// Extrinsic versions.
+	/// Extrinsic versions supported by the runtime.
 	pub versions: Vec<u8>,
 	/// The type of the address that signs the extrinsic
 	pub address_ty: T::Type,
