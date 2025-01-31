@@ -499,6 +499,44 @@ impl IntoPortable for PalletAssociatedTypeMetadata {
 	}
 }
 
+/// Metadata about a pallet view function.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct PalletViewFunctionMetadata<T: Form = MetaForm> {
+	/// Method name.
+	pub name: T::String,
+	/// Method id.
+	pub id: [u8; 32],
+	/// Method parameters.
+	pub inputs: Vec<PalletViewFunctionParamMetadata<T>>,
+	/// Method output.
+	pub output: T::Type,
+	/// Method documentation.
+	pub docs: Vec<T::String>,
+	/// Deprecation info
+	pub deprecation_info: DeprecationStatus<T>,
+}
+
+impl IntoPortable for PalletViewFunctionMetadata {
+	type Output = PalletViewFunctionMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		PalletViewFunctionMetadata {
+			name: self.name.into_portable(registry),
+			id: self.id,
+			inputs: registry.map_into_portable(self.inputs),
+			output: registry.register_type(&self.output),
+			docs: registry.map_into_portable(self.docs),
+			deprecation_info: self.deprecation_info.into_portable(registry),
+		}
+	}
+}
+
 /// Metadata for custom types.
 ///
 /// This map associates a string key to a `CustomValueMetadata`.
