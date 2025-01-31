@@ -537,6 +537,32 @@ impl IntoPortable for PalletViewFunctionMetadata {
 	}
 }
 
+/// Metadata of a runtime view function parameter.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct PalletViewFunctionParamMetadata<T: Form = MetaForm> {
+	/// Parameter name.
+	pub name: T::String,
+	/// Parameter type.
+	pub ty: T::Type,
+}
+
+impl IntoPortable for PalletViewFunctionParamMetadata {
+	type Output = PalletViewFunctionParamMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		PalletViewFunctionParamMetadata {
+			name: self.name.into_portable(registry),
+			ty: registry.register_type(&self.ty),
+		}
+	}
+}
+
 /// Metadata for custom types.
 ///
 /// This map associates a string key to a `CustomValueMetadata`.
