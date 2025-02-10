@@ -265,6 +265,8 @@ pub struct PalletMetadata<T: Form = MetaForm> {
 	pub error: Option<PalletErrorMetadata<T>>,
 	/// Config's trait associated types.
 	pub associated_types: Vec<PalletAssociatedTypeMetadata<T>>,
+	/// Pallet view functions metadata.
+	pub view_functions: Vec<PalletViewFunctionMetadata<T>>,
 	/// Define the index of the pallet, this index will be used for the encoding of pallet event,
 	/// call and origin variants.
 	pub index: u8,
@@ -286,6 +288,7 @@ impl IntoPortable for PalletMetadata {
 			constants: registry.map_into_portable(self.constants),
 			error: self.error.map(|error| error.into_portable(registry)),
 			associated_types: registry.map_into_portable(self.associated_types),
+			view_functions: registry.map_into_portable(self.view_functions),
 			index: self.index,
 			docs: registry.map_into_portable(self.docs),
 			deprecation_info: self.deprecation_info.into_portable(registry),
@@ -495,6 +498,70 @@ impl IntoPortable for PalletAssociatedTypeMetadata {
 			name: self.name.into_portable(registry),
 			ty: registry.register_type(&self.ty),
 			docs: registry.map_into_portable(self.docs),
+		}
+	}
+}
+
+/// Metadata about a pallet view function.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct PalletViewFunctionMetadata<T: Form = MetaForm> {
+	/// Method name.
+	pub name: T::String,
+	/// Method id.
+	pub id: [u8; 32],
+	/// Method parameters.
+	pub inputs: Vec<PalletViewFunctionParamMetadata<T>>,
+	/// Method output.
+	pub output: T::Type,
+	/// Method documentation.
+	pub docs: Vec<T::String>,
+	/// Deprecation info
+	pub deprecation_info: DeprecationStatus<T>,
+}
+
+impl IntoPortable for PalletViewFunctionMetadata {
+	type Output = PalletViewFunctionMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		PalletViewFunctionMetadata {
+			name: self.name.into_portable(registry),
+			id: self.id,
+			inputs: registry.map_into_portable(self.inputs),
+			output: registry.register_type(&self.output),
+			docs: registry.map_into_portable(self.docs),
+			deprecation_info: self.deprecation_info.into_portable(registry),
+		}
+	}
+}
+
+/// Metadata of a runtime view function parameter.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub struct PalletViewFunctionParamMetadata<T: Form = MetaForm> {
+	/// Parameter name.
+	pub name: T::String,
+	/// Parameter type.
+	pub ty: T::Type,
+}
+
+impl IntoPortable for PalletViewFunctionParamMetadata {
+	type Output = PalletViewFunctionParamMetadata<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		PalletViewFunctionParamMetadata {
+			name: self.name.into_portable(registry),
+			ty: registry.register_type(&self.ty),
 		}
 	}
 }
