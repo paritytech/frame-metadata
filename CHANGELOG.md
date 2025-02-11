@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [19.0.0] - 2025-02-11
+
+Metadata version 16 is currently unstable and can be enabled using the unstable feature flag.
+
+### Added
+
+- v16: Add view functions to the pallets metadata [#89](https://github.com/paritytech/frame-metadata/pull/89)
+
 ## [18.0.0] - 2024-11-13
 
 ### Changed
