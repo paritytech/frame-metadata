@@ -19,7 +19,7 @@ use codec::Decode;
 use serde::Serialize;
 
 use super::{RuntimeMetadataPrefixed, META_RESERVED};
-use codec::{Compact, Encode};
+use codec::Encode;
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
 	prelude::{collections::BTreeMap, vec::Vec},
@@ -101,7 +101,7 @@ pub struct RuntimeApiMetadata<T: Form = MetaForm> {
 	/// Deprecation info.
 	pub deprecation_info: DeprecationStatus<T>,
 	/// Runtime API version.
-	pub version: Compact<u32>,
+	pub version: u32,
 }
 
 impl IntoPortable for RuntimeApiMetadata {
