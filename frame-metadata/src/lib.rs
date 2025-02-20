@@ -193,7 +193,7 @@ impl RuntimeMetadata {
 			RuntimeMetadata::V13(_) => 13,
 			RuntimeMetadata::V14(_) => 14,
 			RuntimeMetadata::V15(_) => 15,
-			RuntimeMetadata::V16(_) => 16,
+			RuntimeMetadata::V16(_) => u32::MAX,
 		}
 	}
 }
