@@ -27,12 +27,8 @@ use scale_info::{
 };
 
 // These types have not changed, so we re-export from our v14/v15 definitions:
-pub use super::v14::{
-	StorageEntryModifier, StorageEntryType, StorageHasher,
-};
-pub use super::v15::{
-	CustomMetadata, CustomValueMetadata, OuterEnums,
-};
+pub use super::v14::{StorageEntryModifier, StorageEntryType, StorageHasher};
+pub use super::v15::{CustomMetadata, CustomValueMetadata, OuterEnums};
 
 /// The metadata for a method or function parameter. This is identical to
 /// [`crate::v15::RuntimeApiMethodParamMetadata`].
