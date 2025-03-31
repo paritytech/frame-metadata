@@ -107,7 +107,7 @@ pub struct RuntimeApiMetadata<T: Form = MetaForm> {
 	/// Deprecation info.
 	pub deprecation_info: DeprecationStatus<T>,
 	/// Runtime API version.
-	pub version: Compact<u32>,
+	pub version: CompactSer<u32>,
 }
 
 impl IntoPortable for RuntimeApiMetadata {
@@ -177,7 +177,7 @@ pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	/// A mapping of supported transaction extrinsic versions to their respective transaction extension indexes.
 	///
 	/// For each supported version number, list the indexes, in order, of the extensions used.
-	pub transaction_extensions_by_version: BTreeMap<u8, Vec<Compact<u32>>>,
+	pub transaction_extensions_by_version: BTreeMap<u8, Vec<CompactSer<u32>>>,
 	/// The transaction extensions in the order they appear in the extrinsic.
 	pub transaction_extensions: Vec<TransactionExtensionMetadata<T>>,
 }
@@ -603,22 +603,22 @@ impl IntoPortable for DeprecationInfo {
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(feature = "serde_full", serde(from = "T"))]
-pub struct Compact<T>(codec::Compact<T>);
+pub struct CompactSer<T>(codec::Compact<T>);
 
-impl<T> core::ops::Deref for Compact<T> {
+impl<T> core::ops::Deref for CompactSer<T> {
 	type Target = T;
 	fn deref(&self) -> &Self::Target {
 		&self.0 .0
 	}
 }
 
-impl<T> From<T> for Compact<T> {
-	fn from(x: T) -> Compact<T> {
-		Compact(codec::Compact(x))
+impl<T> From<T> for CompactSer<T> {
+	fn from(x: T) -> CompactSer<T> {
+		CompactSer(codec::Compact(x))
 	}
 }
 
-impl<T> Compact<T> {
+impl<T> CompactSer<T> {
 	/// Retrieve the inner value.
 	pub fn inner(self) -> T {
 		self.0 .0
