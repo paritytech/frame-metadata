@@ -33,6 +33,7 @@ unstable = ["current"]
 # Serde support without relying on std features
 serde_full = [
 	"scale-info/serde",
+	"codec/serde",
 	"serde",
 	"serde/alloc",
 ]

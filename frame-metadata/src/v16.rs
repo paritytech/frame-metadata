@@ -19,7 +19,7 @@ use codec::Decode;
 use serde::Serialize;
 
 use super::{RuntimeMetadataPrefixed, META_RESERVED};
-use codec::Encode;
+use codec::{Compact, Encode};
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
 	prelude::{collections::BTreeMap, vec::Vec},
@@ -107,7 +107,7 @@ pub struct RuntimeApiMetadata<T: Form = MetaForm> {
 	/// Deprecation info.
 	pub deprecation_info: DeprecationStatus<T>,
 	/// Runtime API version.
-	pub version: CompactSer<u32>,
+	pub version: Compact<u32>,
 }
 
 impl IntoPortable for RuntimeApiMetadata {
@@ -177,7 +177,7 @@ pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	/// A mapping of supported transaction extrinsic versions to their respective transaction extension indexes.
 	///
 	/// For each supported version number, list the indexes, in order, of the extensions used.
-	pub transaction_extensions_by_version: BTreeMap<u8, Vec<CompactSer<u32>>>,
+	pub transaction_extensions_by_version: BTreeMap<u8, Vec<Compact<u32>>>,
 	/// The transaction extensions in the order they appear in the extrinsic.
 	pub transaction_extensions: Vec<TransactionExtensionMetadata<T>>,
 }
@@ -592,35 +592,5 @@ impl IntoPortable for DeprecationInfo {
 			}
 			Self::NotDeprecated => DeprecationInfo::NotDeprecated,
 		}
-	}
-}
-
-/// A wrapper around [`codec::Compact`] which is compact
-/// encoded and can be transparently serialized via serde.
-// Dev note: If we add Serializing to codec::Compact, this
-// can be removed without altering the SCALE encoding.
-#[derive(Clone, Copy, PartialEq, Eq, Encode, Debug)]
-#[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
-#[cfg_attr(feature = "serde_full", serde(from = "T"))]
-pub struct CompactSer<T>(codec::Compact<T>);
-
-impl<T> core::ops::Deref for CompactSer<T> {
-	type Target = T;
-	fn deref(&self) -> &Self::Target {
-		&self.0 .0
-	}
-}
-
-impl<T> From<T> for CompactSer<T> {
-	fn from(x: T) -> CompactSer<T> {
-		CompactSer(codec::Compact(x))
-	}
-}
-
-impl<T> CompactSer<T> {
-	/// Retrieve the inner value.
-	pub fn inner(self) -> T {
-		self.0 .0
 	}
 }
