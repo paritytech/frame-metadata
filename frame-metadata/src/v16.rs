@@ -19,7 +19,7 @@ use codec::Decode;
 use serde::Serialize;
 
 use super::{RuntimeMetadataPrefixed, META_RESERVED};
-use codec::{Compact, Encode};
+use codec::Encode;
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
 	prelude::{collections::BTreeMap, vec::Vec},
@@ -592,5 +592,35 @@ impl IntoPortable for DeprecationInfo {
 			}
 			Self::NotDeprecated => DeprecationInfo::NotDeprecated,
 		}
+	}
+}
+
+/// A wrapper around [`codec::Compact`] which is compact
+/// encoded and can be transparently serialized via serde.
+// Dev note: If we add Serializing to codec::Compact, this
+// can be removed without altering the SCALE encoding.
+#[derive(Clone, Copy, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(feature = "serde_full", serde(from = "T"))]
+pub struct Compact<T>(codec::Compact<T>);
+
+impl<T> core::ops::Deref for Compact<T> {
+	type Target = T;
+	fn deref(&self) -> &Self::Target {
+		&self.0 .0
+	}
+}
+
+impl<T> From<T> for Compact<T> {
+	fn from(x: T) -> Compact<T> {
+		Compact(codec::Compact(x))
+	}
+}
+
+impl<T> Compact<T> {
+	/// Retrieve the inner value.
+	pub fn inner(self) -> T {
+		self.0 .0
 	}
 }
