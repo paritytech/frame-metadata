@@ -19,16 +19,22 @@ use codec::Decode;
 use serde::Serialize;
 
 use super::{RuntimeMetadataPrefixed, META_RESERVED};
-use codec::Encode;
+use codec::{Compact, Encode};
 use scale_info::{
 	form::{Form, MetaForm, PortableForm},
 	prelude::{collections::BTreeMap, vec::Vec},
 	IntoPortable, PortableRegistry, Registry,
 };
 
+// These types have not changed, so we re-export from our v14/v15 definitions:
 pub use super::v14::{StorageEntryModifier, StorageEntryType, StorageHasher};
+pub use super::v15::{CustomMetadata, CustomValueMetadata, OuterEnums};
 
-/// Latest runtime metadata
+/// The metadata for a method or function parameter. This is identical to
+/// [`crate::v15::RuntimeApiMethodParamMetadata`].
+pub type FunctionParamMetadata<T> = super::v15::RuntimeApiMethodParamMetadata<T>;
+
+/// Latest runtime metadata.
 pub type RuntimeMetadataLastVersion = RuntimeMetadataV16;
 
 impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
@@ -101,7 +107,7 @@ pub struct RuntimeApiMetadata<T: Form = MetaForm> {
 	/// Deprecation info.
 	pub deprecation_info: DeprecationStatus<T>,
 	/// Runtime API version.
-	pub version: u32,
+	pub version: Compact<u32>,
 }
 
 impl IntoPortable for RuntimeApiMetadata {
@@ -130,7 +136,7 @@ pub struct RuntimeApiMethodMetadata<T: Form = MetaForm> {
 	/// Method name.
 	pub name: T::String,
 	/// Method parameters.
-	pub inputs: Vec<RuntimeApiMethodParamMetadata<T>>,
+	pub inputs: Vec<FunctionParamMetadata<T>>,
 	/// Method output.
 	pub output: T::Type,
 	/// Method documentation.
@@ -153,32 +159,6 @@ impl IntoPortable for RuntimeApiMethodMetadata {
 	}
 }
 
-/// Metadata of a runtime method parameter.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
-#[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
-#[cfg_attr(
-	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct RuntimeApiMethodParamMetadata<T: Form = MetaForm> {
-	/// Parameter name.
-	pub name: T::String,
-	/// Parameter type.
-	pub ty: T::Type,
-}
-
-impl IntoPortable for RuntimeApiMethodParamMetadata {
-	type Output = RuntimeApiMethodParamMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		RuntimeApiMethodParamMetadata {
-			name: self.name.into_portable(registry),
-			ty: registry.register_type(&self.ty),
-		}
-	}
-}
-
 /// Metadata of the extrinsic used by the runtime.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
@@ -197,7 +177,7 @@ pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	/// A mapping of supported transaction extrinsic versions to their respective transaction extension indexes.
 	///
 	/// For each supported version number, list the indexes, in order, of the extensions used.
-	pub transaction_extensions_by_version: BTreeMap<u8, Vec<u32>>,
+	pub transaction_extensions_by_version: BTreeMap<u8, Vec<Compact<u32>>>,
 	/// The transaction extensions in the order they appear in the extrinsic.
 	pub transaction_extensions: Vec<TransactionExtensionMetadata<T>>,
 }
@@ -299,7 +279,7 @@ impl IntoPortable for PalletMetadata {
 	}
 }
 
-/// Metadata for all calls in a pallet
+/// Metadata for all calls in a pallet.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -519,7 +499,7 @@ pub struct PalletViewFunctionMetadata<T: Form = MetaForm> {
 	/// Method id.
 	pub id: [u8; 32],
 	/// Method parameters.
-	pub inputs: Vec<PalletViewFunctionParamMetadata<T>>,
+	pub inputs: Vec<FunctionParamMetadata<T>>,
 	/// Method output.
 	pub output: T::Type,
 	/// Method documentation.
@@ -539,130 +519,6 @@ impl IntoPortable for PalletViewFunctionMetadata {
 			output: registry.register_type(&self.output),
 			docs: registry.map_into_portable(self.docs),
 			deprecation_info: self.deprecation_info.into_portable(registry),
-		}
-	}
-}
-
-/// Metadata of a runtime view function parameter.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
-#[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
-#[cfg_attr(
-	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct PalletViewFunctionParamMetadata<T: Form = MetaForm> {
-	/// Parameter name.
-	pub name: T::String,
-	/// Parameter type.
-	pub ty: T::Type,
-}
-
-impl IntoPortable for PalletViewFunctionParamMetadata {
-	type Output = PalletViewFunctionParamMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		PalletViewFunctionParamMetadata {
-			name: self.name.into_portable(registry),
-			ty: registry.register_type(&self.ty),
-		}
-	}
-}
-
-/// Metadata for custom types.
-///
-/// This map associates a string key to a `CustomValueMetadata`.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
-#[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
-#[cfg_attr(
-	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct CustomMetadata<T: Form = MetaForm> {
-	/// The custom map.
-	pub map: BTreeMap<T::String, CustomValueMetadata<T>>,
-}
-
-impl IntoPortable for CustomMetadata {
-	type Output = CustomMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		let map = self
-			.map
-			.into_iter()
-			.map(|(key, value)| (key.into_portable(registry), value.into_portable(registry)))
-			.collect();
-
-		CustomMetadata { map }
-	}
-}
-
-/// The associated value of a custom metadata type.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
-#[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
-#[cfg_attr(
-	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct CustomValueMetadata<T: Form = MetaForm> {
-	/// The custom type.
-	pub ty: T::Type,
-	/// The custom value of this type.
-	pub value: Vec<u8>,
-}
-
-impl IntoPortable for CustomValueMetadata {
-	type Output = CustomValueMetadata<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		CustomValueMetadata {
-			ty: registry.register_type(&self.ty),
-			value: self.value,
-		}
-	}
-}
-
-/// The type of the outer enums.
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
-#[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
-#[cfg_attr(
-	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub struct OuterEnums<T: Form = MetaForm> {
-	/// The type of the outer `RuntimeCall` enum.
-	pub call_enum_ty: T::Type,
-	/// The type of the outer `RuntimeEvent` enum.
-	pub event_enum_ty: T::Type,
-	/// The module error type of the
-	/// [`DispatchError::Module`](https://docs.rs/sp-runtime/24.0.0/sp_runtime/enum.DispatchError.html#variant.Module) variant.
-	///
-	/// The `Module` variant will be 5 scale encoded bytes which are normally decoded into
-	/// an `{ index: u8, error: [u8; 4] }` struct. This type ID points to an enum type which instead
-	/// interprets the first `index` byte as a pallet variant, and the remaining `error` bytes as the
-	/// appropriate `pallet::Error` type. It is an equally valid way to decode the error bytes, and
-	/// can be more informative.
-	///
-	/// # Note
-	///
-	/// - This type cannot be used directly to decode `sp_runtime::DispatchError` from the
-	///   chain. It provides just the information needed to decode `sp_runtime::DispatchError::Module`.
-	/// - Decoding the 5 error bytes into this type will not always lead to all of the bytes being consumed;
-	///   many error types do not require all of the bytes to represent them fully.
-	pub error_enum_ty: T::Type,
-}
-
-impl IntoPortable for OuterEnums {
-	type Output = OuterEnums<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		OuterEnums {
-			call_enum_ty: registry.register_type(&self.call_enum_ty),
-			event_enum_ty: registry.register_type(&self.event_enum_ty),
-			error_enum_ty: registry.register_type(&self.error_enum_ty),
 		}
 	}
 }
