@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [21.0.0] - 2025-04-01
+
+### Changed
+
+- Address some small niggles in the unstable V16 metadata [#98](https://github.com/paritytech/frame-metadata/pull/98)
+
 ## [20.0.0] - 2025-02-20
 
 Metadata version 16 is currently unstable and can be enabled using the unstable feature flag.
