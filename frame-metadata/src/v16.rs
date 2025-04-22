@@ -105,7 +105,7 @@ pub struct RuntimeApiMetadata<T: Form = MetaForm> {
 	/// Trait documentation.
 	pub docs: Vec<T::String>,
 	/// Deprecation info.
-	pub deprecation_info: DeprecationStatus<T>,
+	pub deprecation_info: ItemDeprecationInfo<T>,
 	/// Runtime API version.
 	pub version: Compact<u32>,
 }
@@ -142,7 +142,7 @@ pub struct RuntimeApiMethodMetadata<T: Form = MetaForm> {
 	/// Method documentation.
 	pub docs: Vec<T::String>,
 	/// Deprecation info
-	pub deprecation_info: DeprecationStatus<T>,
+	pub deprecation_info: ItemDeprecationInfo<T>,
 }
 
 impl IntoPortable for RuntimeApiMethodMetadata {
@@ -256,7 +256,7 @@ pub struct PalletMetadata<T: Form = MetaForm> {
 	/// Pallet documentation.
 	pub docs: Vec<T::String>,
 	/// Deprecation info
-	pub deprecation_info: DeprecationStatus<T>,
+	pub deprecation_info: ItemDeprecationInfo<T>,
 }
 
 impl IntoPortable for PalletMetadata {
@@ -291,7 +291,7 @@ pub struct PalletCallMetadata<T: Form = MetaForm> {
 	/// The corresponding enum type for the pallet call.
 	pub ty: T::Type,
 	/// Deprecation status of the pallet call
-	pub deprecation_info: DeprecationInfo<T>,
+	pub deprecation_info: EnumDeprecationInfo<T>,
 }
 
 impl IntoPortable for PalletCallMetadata {
@@ -351,7 +351,7 @@ pub struct StorageEntryMetadata<T: Form = MetaForm> {
 	/// Storage entry documentation.
 	pub docs: Vec<T::String>,
 	/// Deprecation info
-	pub deprecation_info: DeprecationStatus<T>,
+	pub deprecation_info: ItemDeprecationInfo<T>,
 }
 
 impl IntoPortable for StorageEntryMetadata {
@@ -381,7 +381,7 @@ pub struct PalletEventMetadata<T: Form = MetaForm> {
 	/// The Event type.
 	pub ty: T::Type,
 	/// Deprecation info
-	pub deprecation_info: DeprecationInfo<T>,
+	pub deprecation_info: EnumDeprecationInfo<T>,
 }
 
 impl IntoPortable for PalletEventMetadata {
@@ -413,7 +413,7 @@ pub struct PalletConstantMetadata<T: Form = MetaForm> {
 	/// Documentation of the constant.
 	pub docs: Vec<T::String>,
 	/// Deprecation info
-	pub deprecation_info: DeprecationStatus<T>,
+	pub deprecation_info: ItemDeprecationInfo<T>,
 }
 
 impl IntoPortable for PalletConstantMetadata {
@@ -442,7 +442,7 @@ pub struct PalletErrorMetadata<T: Form = MetaForm> {
 	/// The error type information.
 	pub ty: T::Type,
 	/// Deprecation info
-	pub deprecation_info: DeprecationInfo<T>,
+	pub deprecation_info: EnumDeprecationInfo<T>,
 }
 
 impl IntoPortable for PalletErrorMetadata {
@@ -505,7 +505,7 @@ pub struct PalletViewFunctionMetadata<T: Form = MetaForm> {
 	/// Method documentation.
 	pub docs: Vec<T::String>,
 	/// Deprecation info
-	pub deprecation_info: DeprecationStatus<T>,
+	pub deprecation_info: ItemDeprecationInfo<T>,
 }
 
 impl IntoPortable for PalletViewFunctionMetadata {
@@ -523,7 +523,7 @@ impl IntoPortable for PalletViewFunctionMetadata {
 	}
 }
 
-/// Deprecation status for an entry inside the metadata.
+/// Deprecation information for generic items.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -531,66 +531,112 @@ impl IntoPortable for PalletViewFunctionMetadata {
 	feature = "serde_full",
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
-pub enum DeprecationStatus<T: Form = MetaForm> {
-	/// Entry is not deprecated
+pub enum ItemDeprecationInfo<T: Form = MetaForm> {
+	/// Item is not deprecated.
 	NotDeprecated,
-	/// Deprecated without a note.
+	/// Item is fully deprecated without a note.
 	DeprecatedWithoutNote,
-	/// Entry is deprecated with an note and an optional `since` field.
+	/// Item is fully deprecated with a note and an optional `since` field.
 	Deprecated {
 		/// Note explaining the deprecation
 		note: T::String,
-		/// Optional value for denoting version when the deprecation occurred.
+		/// Optional value for noting the version when the deprecation occurred.
 		since: Option<T::String>,
 	},
 }
-impl IntoPortable for DeprecationStatus {
-	type Output = DeprecationStatus<PortableForm>;
+
+impl IntoPortable for ItemDeprecationInfo {
+	type Output = ItemDeprecationInfo<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		match self {
+			Self::NotDeprecated => ItemDeprecationInfo::NotDeprecated,
+			Self::DeprecatedWithoutNote => ItemDeprecationInfo::DeprecatedWithoutNote,
+			Self::Deprecated { note, since } => {
+				let note = note.into_portable(registry);
+				let since = since.map(|x| x.into_portable(registry));
+				ItemDeprecationInfo::Deprecated { note, since }
+			}
+		}
+	}
+}
+
+/// Deprecation information for enums in which specific variants can be deprecated.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub enum EnumDeprecationInfo<T: Form = MetaForm> {
+	/// Enum is not deprecated.
+	NotDeprecated,
+	/// Enum is fully deprecated without a note.
+	DeprecatedWithoutNote,
+	/// Enum is fully deprecated with a note and an optional `since` field.
+	Deprecated {
+		/// Note explaining the deprecation
+		note: T::String,
+		/// Optional value for noting the version when the deprecation occurred.
+		since: Option<T::String>,
+	},
+	/// One or more variants of the enum are deprecated, but the enum as a whole is not.
+	VariantsDeprecated(BTreeMap<u8, VariantDeprecationInfo<T>>),
+}
+
+impl IntoPortable for EnumDeprecationInfo {
+	type Output = EnumDeprecationInfo<PortableForm>;
+
+	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		match self {
+			Self::NotDeprecated => EnumDeprecationInfo::NotDeprecated,
+			Self::DeprecatedWithoutNote => EnumDeprecationInfo::DeprecatedWithoutNote,
+			Self::Deprecated { note, since } => {
+				let note = note.into_portable(registry);
+				let since = since.map(|x| x.into_portable(registry));
+				EnumDeprecationInfo::Deprecated { note, since }
+			}
+			Self::VariantsDeprecated(entries) => {
+				let entries = entries
+					.into_iter()
+					.map(|(k, entry)| (k, entry.into_portable(registry)));
+				EnumDeprecationInfo::VariantsDeprecated(entries.collect())
+			}
+		}
+	}
+}
+
+/// Deprecation information for an item or variant in the metadata.
+#[derive(Clone, PartialEq, Eq, Encode, Debug)]
+#[cfg_attr(feature = "decode", derive(Decode))]
+#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	feature = "serde_full",
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+)]
+pub enum VariantDeprecationInfo<T: Form = MetaForm> {
+	/// Variant is deprecated without a note.
+	DeprecatedWithoutNote,
+	/// Variant is deprecated with a note and an optional `since` field.
+	Deprecated {
+		/// Note explaining the deprecation
+		note: T::String,
+		/// Optional value for noting the version when the deprecation occurred.
+		since: Option<T::String>,
+	},
+}
+impl IntoPortable for VariantDeprecationInfo {
+	type Output = VariantDeprecationInfo<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		match self {
 			Self::Deprecated { note, since } => {
 				let note = note.into_portable(registry);
 				let since = since.map(|x| x.into_portable(registry));
-				DeprecationStatus::Deprecated { note, since }
+				VariantDeprecationInfo::Deprecated { note, since }
 			}
-			Self::DeprecatedWithoutNote => DeprecationStatus::DeprecatedWithoutNote,
-			Self::NotDeprecated => DeprecationStatus::NotDeprecated,
-		}
-	}
-}
-/// Deprecation info for an enums/errors/calls.
-/// Denotes full/partial deprecation of the type
-#[derive(Clone, PartialEq, Eq, Encode, Debug)]
-#[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
-#[cfg_attr(
-	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
-)]
-pub enum DeprecationInfo<T: Form = MetaForm> {
-	/// Type is not deprecated
-	NotDeprecated,
-	/// Entry is fully deprecated.
-	ItemDeprecated(DeprecationStatus<T>),
-	/// Entry is partially deprecated.
-	VariantsDeprecated(BTreeMap<u8, DeprecationStatus<T>>),
-}
-impl IntoPortable for DeprecationInfo {
-	type Output = DeprecationInfo<PortableForm>;
-
-	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		match self {
-			Self::VariantsDeprecated(entries) => {
-				let entries = entries
-					.into_iter()
-					.map(|(k, entry)| (k, entry.into_portable(registry)));
-				DeprecationInfo::VariantsDeprecated(entries.collect())
-			}
-			Self::ItemDeprecated(deprecation) => {
-				DeprecationInfo::ItemDeprecated(deprecation.into_portable(registry))
-			}
-			Self::NotDeprecated => DeprecationInfo::NotDeprecated,
+			Self::DeprecatedWithoutNote => VariantDeprecationInfo::DeprecatedWithoutNote,
 		}
 	}
 }
