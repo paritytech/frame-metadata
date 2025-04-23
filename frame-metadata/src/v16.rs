@@ -562,6 +562,7 @@ impl IntoPortable for ItemDeprecationInfo {
 }
 
 /// Deprecation information for enums in which specific variants can be deprecated.
+/// If the map is empty, then nothing is deprecated.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -569,41 +570,29 @@ impl IntoPortable for ItemDeprecationInfo {
 	feature = "serde_full",
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
-pub enum EnumDeprecationInfo<T: Form = MetaForm> {
-	/// Enum is not deprecated.
-	NotDeprecated,
-	/// Enum is fully deprecated without a note.
-	DeprecatedWithoutNote,
-	/// Enum is fully deprecated with a note and an optional `since` field.
-	Deprecated {
-		/// Note explaining the deprecation
-		note: T::String,
-		/// Optional value for noting the version when the deprecation occurred.
-		since: Option<T::String>,
-	},
-	/// One or more variants of the enum are deprecated, but the enum as a whole is not.
-	VariantsDeprecated(BTreeMap<u8, VariantDeprecationInfo<T>>),
+pub struct EnumDeprecationInfo<T: Form = MetaForm>(pub BTreeMap<u8, VariantDeprecationInfo<T>>);
+
+impl<T: Form> EnumDeprecationInfo<T> {
+	/// Are any variants deprecated?
+	pub fn has_deprecated_variants(&self) -> bool {
+		!self.0.is_empty()
+	}
+
+	/// Is a specific variant deprecated?
+	pub fn is_variant_deprecated(&self, variant_index: u8) -> bool {
+		self.0.contains_key(&variant_index)
+	}
 }
 
 impl IntoPortable for EnumDeprecationInfo {
 	type Output = EnumDeprecationInfo<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
-		match self {
-			Self::NotDeprecated => EnumDeprecationInfo::NotDeprecated,
-			Self::DeprecatedWithoutNote => EnumDeprecationInfo::DeprecatedWithoutNote,
-			Self::Deprecated { note, since } => {
-				let note = note.into_portable(registry);
-				let since = since.map(|x| x.into_portable(registry));
-				EnumDeprecationInfo::Deprecated { note, since }
-			}
-			Self::VariantsDeprecated(entries) => {
-				let entries = entries
-					.into_iter()
-					.map(|(k, entry)| (k, entry.into_portable(registry)));
-				EnumDeprecationInfo::VariantsDeprecated(entries.collect())
-			}
-		}
+		let entries = self
+			.0
+			.into_iter()
+			.map(|(k, entry)| (k, entry.into_portable(registry)));
+		EnumDeprecationInfo(entries.collect())
 	}
 }
 
@@ -626,6 +615,7 @@ pub enum VariantDeprecationInfo<T: Form = MetaForm> {
 		since: Option<T::String>,
 	},
 }
+
 impl IntoPortable for VariantDeprecationInfo {
 	type Output = VariantDeprecationInfo<PortableForm>;
 
