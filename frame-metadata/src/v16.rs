@@ -573,6 +573,11 @@ impl IntoPortable for ItemDeprecationInfo {
 pub struct EnumDeprecationInfo<T: Form = MetaForm>(pub BTreeMap<u8, VariantDeprecationInfo<T>>);
 
 impl<T: Form> EnumDeprecationInfo<T> {
+	/// Construct an instance in which nothing is marked for deprecation.
+	pub fn nothing_deprecated() -> Self {
+		Self(BTreeMap::new())
+	}
+
 	/// Are any variants deprecated?
 	pub fn has_deprecated_variants(&self) -> bool {
 		!self.0.is_empty()
