@@ -173,6 +173,9 @@ pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	/// The type of the address that signs the extrinsic
 	pub address_ty: T::Type,
 	/// The type of the outermost Call enum.
+	// Dev note: this is also exposed in outer_enums, but we duplicate
+	// it here so that ExtrinsicMetadata, on its own, provides everything
+	// needed to decode an extrinsic.
 	pub call_ty: T::Type,
 	/// The type of the extrinsic's signature.
 	pub signature_ty: T::Type,
@@ -605,6 +608,8 @@ impl IntoPortable for EnumDeprecationInfo {
 }
 
 /// Deprecation information for an item or variant in the metadata.
+// Dev note: we use #[codec(index)] here to align the indexes with those
+// of ItemDeprecationInfo, allowing both can decode into this asa convenience.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
