@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [22.0.0] - 2025-04-24
+
+### Changed
+
+- Alter the deprecation information metadata to remove duplicate/confusing states [#101](https://github.com/paritytech/frame-metadata/pull/101)
+
 ## [21.0.0] - 2025-04-01
 
 ### Changed
