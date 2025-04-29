@@ -104,10 +104,10 @@ pub struct RuntimeApiMetadata<T: Form = MetaForm> {
 	pub methods: Vec<RuntimeApiMethodMetadata<T>>,
 	/// Trait documentation.
 	pub docs: Vec<T::String>,
-	/// Deprecation info.
-	pub deprecation_info: ItemDeprecationInfo<T>,
 	/// Runtime API version.
 	pub version: Compact<u32>,
+	/// Deprecation info.
+	pub deprecation_info: ItemDeprecationInfo<T>,
 }
 
 impl IntoPortable for RuntimeApiMetadata {
@@ -118,8 +118,8 @@ impl IntoPortable for RuntimeApiMetadata {
 			name: self.name.into_portable(registry),
 			methods: registry.map_into_portable(self.methods),
 			docs: registry.map_into_portable(self.docs),
-			deprecation_info: self.deprecation_info.into_portable(registry),
 			version: self.version,
+			deprecation_info: self.deprecation_info.into_portable(registry),
 		}
 	}
 }
@@ -172,6 +172,11 @@ pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	pub versions: Vec<u8>,
 	/// The type of the address that signs the extrinsic
 	pub address_ty: T::Type,
+	/// The type of the outermost Call enum.
+	// Dev note: this is also exposed in outer_enums, but we duplicate
+	// it here so that ExtrinsicMetadata, on its own, provides everything
+	// needed to decode an extrinsic.
+	pub call_ty: T::Type,
 	/// The type of the extrinsic's signature.
 	pub signature_ty: T::Type,
 	/// A mapping of supported transaction extrinsic versions to their respective transaction extension indexes.
@@ -189,6 +194,7 @@ impl IntoPortable for ExtrinsicMetadata {
 		ExtrinsicMetadata {
 			versions: self.versions,
 			address_ty: registry.register_type(&self.address_ty),
+			call_ty: registry.register_type(&self.call_ty),
 			signature_ty: registry.register_type(&self.signature_ty),
 			transaction_extensions_by_version: self.transaction_extensions_by_version,
 			transaction_extensions: registry.map_into_portable(self.transaction_extensions),
@@ -494,10 +500,10 @@ impl IntoPortable for PalletAssociatedTypeMetadata {
 	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
 )]
 pub struct PalletViewFunctionMetadata<T: Form = MetaForm> {
-	/// Method name.
-	pub name: T::String,
 	/// Method id.
 	pub id: [u8; 32],
+	/// Method name.
+	pub name: T::String,
 	/// Method parameters.
 	pub inputs: Vec<FunctionParamMetadata<T>>,
 	/// Method output.
@@ -513,8 +519,8 @@ impl IntoPortable for PalletViewFunctionMetadata {
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
 		PalletViewFunctionMetadata {
-			name: self.name.into_portable(registry),
 			id: self.id,
+			name: self.name.into_portable(registry),
 			inputs: registry.map_into_portable(self.inputs),
 			output: registry.register_type(&self.output),
 			docs: registry.map_into_portable(self.docs),
@@ -602,6 +608,8 @@ impl IntoPortable for EnumDeprecationInfo {
 }
 
 /// Deprecation information for an item or variant in the metadata.
+// Dev note: we use #[codec(index)] here to align the indexes with those
+// of ItemDeprecationInfo, allowing both can decode into this asa convenience.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
@@ -611,8 +619,10 @@ impl IntoPortable for EnumDeprecationInfo {
 )]
 pub enum VariantDeprecationInfo<T: Form = MetaForm> {
 	/// Variant is deprecated without a note.
+	#[codec(index = 1)]
 	DeprecatedWithoutNote,
 	/// Variant is deprecated with a note and an optional `since` field.
+	#[codec(index = 2)]
 	Deprecated {
 		/// Note explaining the deprecation
 		note: T::String,
