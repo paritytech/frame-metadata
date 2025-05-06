@@ -75,8 +75,8 @@ pub mod v14;
 #[cfg(feature = "current")]
 pub mod v15;
 
-/// Unstable Metadata v16
-#[cfg(feature = "unstable")]
+/// Metadata v16
+#[cfg(feature = "current")]
 pub mod v16;
 
 /// Metadata prefix.
@@ -166,10 +166,10 @@ pub enum RuntimeMetadata {
 	#[cfg(not(feature = "current"))]
 	V15(OpaqueMetadata),
 	/// Version 16 for runtime metadata.
-	#[cfg(feature = "unstable")]
+	#[cfg(feature = "current")]
 	V16(v16::RuntimeMetadataV16),
 	/// Version 16 for runtime metadata, as raw encoded bytes.
-	#[cfg(not(feature = "unstable"))]
+	#[cfg(not(feature = "current"))]
 	V16(OpaqueMetadata),
 }
 
@@ -193,7 +193,7 @@ impl RuntimeMetadata {
 			RuntimeMetadata::V13(_) => 13,
 			RuntimeMetadata::V14(_) => 14,
 			RuntimeMetadata::V15(_) => 15,
-			RuntimeMetadata::V16(_) => u32::MAX,
+			RuntimeMetadata::V16(_) => 16,
 		}
 	}
 }
