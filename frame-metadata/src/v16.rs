@@ -16,7 +16,7 @@
 #[cfg(feature = "decode")]
 use codec::Decode;
 #[cfg(feature = "serde_full")]
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use super::{RuntimeMetadataPrefixed, META_RESERVED};
 use codec::{Compact, Encode};
@@ -46,7 +46,7 @@ impl From<RuntimeMetadataLastVersion> for super::RuntimeMetadataPrefixed {
 /// The metadata of a runtime.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(feature = "serde_full", derive(Serialize, Deserialize))]
 pub struct RuntimeMetadataV16 {
 	/// Type registry containing all types used in the metadata.
 	pub types: PortableRegistry,
@@ -92,10 +92,11 @@ impl RuntimeMetadataV16 {
 /// Metadata of a runtime trait.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct RuntimeApiMetadata<T: Form = MetaForm> {
 	/// Trait name.
@@ -127,10 +128,11 @@ impl IntoPortable for RuntimeApiMetadata {
 /// Metadata of a runtime method.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct RuntimeApiMethodMetadata<T: Form = MetaForm> {
 	/// Method name.
@@ -162,10 +164,11 @@ impl IntoPortable for RuntimeApiMethodMetadata {
 /// Metadata of the extrinsic used by the runtime.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct ExtrinsicMetadata<T: Form = MetaForm> {
 	/// Extrinsic versions supported by the runtime.
@@ -205,10 +208,11 @@ impl IntoPortable for ExtrinsicMetadata {
 /// Metadata of an extrinsic's transaction extension.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct TransactionExtensionMetadata<T: Form = MetaForm> {
 	/// The unique transaction extension identifier, which may be different from the type name.
@@ -234,10 +238,11 @@ impl IntoPortable for TransactionExtensionMetadata {
 /// All metadata about an runtime pallet.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct PalletMetadata<T: Form = MetaForm> {
 	/// Pallet name.
@@ -288,10 +293,11 @@ impl IntoPortable for PalletMetadata {
 /// Metadata for all calls in a pallet.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct PalletCallMetadata<T: Form = MetaForm> {
 	/// The corresponding enum type for the pallet call.
@@ -314,10 +320,11 @@ impl IntoPortable for PalletCallMetadata {
 /// All metadata of the pallet's storage.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct PalletStorageMetadata<T: Form = MetaForm> {
 	/// The common prefix used by all storage entries.
@@ -340,10 +347,11 @@ impl IntoPortable for PalletStorageMetadata {
 /// Metadata about one storage entry.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct StorageEntryMetadata<T: Form = MetaForm> {
 	/// Variable name of the storage entry.
@@ -378,10 +386,11 @@ impl IntoPortable for StorageEntryMetadata {
 /// Metadata about the pallet Event type.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct PalletEventMetadata<T: Form = MetaForm> {
 	/// The Event type.
@@ -404,10 +413,11 @@ impl IntoPortable for PalletEventMetadata {
 /// Metadata about one pallet constant.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct PalletConstantMetadata<T: Form = MetaForm> {
 	/// Name of the pallet constant.
@@ -439,10 +449,11 @@ impl IntoPortable for PalletConstantMetadata {
 /// Metadata about a pallet error.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct PalletErrorMetadata<T: Form = MetaForm> {
 	/// The error type information.
@@ -465,10 +476,11 @@ impl IntoPortable for PalletErrorMetadata {
 /// Metadata of a pallet's associated type.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct PalletAssociatedTypeMetadata<T: Form = MetaForm> {
 	/// The name of the associated type.
@@ -494,10 +506,11 @@ impl IntoPortable for PalletAssociatedTypeMetadata {
 /// Metadata about a pallet view function.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize")),
+	serde(bound(deserialize = "T::Type: Deserialize<'de>, T::String: Deserialize<'de>"))
 )]
 pub struct PalletViewFunctionMetadata<T: Form = MetaForm> {
 	/// Method id.
@@ -532,10 +545,11 @@ impl IntoPortable for PalletViewFunctionMetadata {
 /// Deprecation information for generic items.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::String: Serialize")),
+	serde(bound(deserialize = "T::String: Deserialize<'de>"))
 )]
 pub enum ItemDeprecationInfo<T: Form = MetaForm> {
 	/// Item is not deprecated.
@@ -571,10 +585,11 @@ impl IntoPortable for ItemDeprecationInfo {
 /// If the map is empty, then nothing is deprecated.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::String: Serialize")),
+	serde(bound(deserialize = "T::String: Deserialize<'de>"))
 )]
 pub struct EnumDeprecationInfo<T: Form = MetaForm>(pub BTreeMap<u8, VariantDeprecationInfo<T>>);
 
@@ -612,10 +627,11 @@ impl IntoPortable for EnumDeprecationInfo {
 // of ItemDeprecationInfo, allowing both can decode into this asa convenience.
 #[derive(Clone, PartialEq, Eq, Encode, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
 #[cfg_attr(
 	feature = "serde_full",
-	serde(bound(serialize = "T::Type: Serialize, T::String: Serialize"))
+	derive(Serialize, Deserialize),
+	serde(bound(serialize = "T::String: Serialize")),
+	serde(bound(deserialize = "T::String: Deserialize<'de>"))
 )]
 pub enum VariantDeprecationInfo<T: Form = MetaForm> {
 	/// Variant is deprecated without a note.
