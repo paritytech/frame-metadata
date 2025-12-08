@@ -72,8 +72,10 @@ impl RuntimeMetadataV16 {
 		custom: CustomMetadata,
 	) -> Self {
 		let mut registry = Registry::new();
-		let pallets = registry.map_into_portable(pallets);
+		// extrinsic types need to be collected first to ensure CheckMetadataHash hash
+		// is stable across different metadata versions
 		let extrinsic = extrinsic.into_portable(&mut registry);
+		let pallets = registry.map_into_portable(pallets);
 		let apis = registry.map_into_portable(apis);
 		let outer_enums = outer_enums.into_portable(&mut registry);
 		let custom = custom.into_portable(&mut registry);
@@ -191,6 +193,8 @@ impl IntoPortable for ExtrinsicMetadata {
 	type Output = ExtrinsicMetadata<PortableForm>;
 
 	fn into_portable(self, registry: &mut Registry) -> Self::Output {
+		// the collection order needs to be stable across different metadata versions
+		// to ensure CheckMetadataHash hash is invariant
 		ExtrinsicMetadata {
 			versions: self.versions,
 			address_ty: registry.register_type(&self.address_ty),
