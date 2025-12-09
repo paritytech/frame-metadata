@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [23.0.1] - 2025-12-09
+
+- fix: ensure extrinsic types are collected before pallet types [#110](https://github.com/paritytech/frame-metadata/pull/110)
+
 ## [23.0.0] - 2025-05-06
 
 This version stabilizes metadata V16, moving it from being marked as "unstable" and hidden behind that feature flag, to being "current" and having version 16 rather than `u32::MAX`.
