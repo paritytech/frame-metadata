@@ -19,7 +19,7 @@ scale-info = { version = "2.0.0", default-features = false, optional = true, fea
 serde = { version = "1.0.101", default-features = false, optional = true, features = ["derive"] }
 
 [features]
-default = ["std", "current", "legacy"]
+default = ["std", "current"]
 
 # Feature flag for pre-V14 versions.
 legacy = []
