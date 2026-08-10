@@ -85,7 +85,11 @@ pub const META_RESERVED: u32 = 0x6174656d; // 'meta' warning for endianness.
 /// Metadata prefixed by a u32 for reserved usage
 #[derive(Eq, Encode, PartialEq, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
-#[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(all(feature = "serde_full"), derive(Serialize))]
+#[cfg_attr(
+	all(feature = "serde_full", not(feature = "legacy")),
+	derive(Deserialize)
+)]
 pub struct RuntimeMetadataPrefixed(pub u32, pub RuntimeMetadata);
 
 impl From<RuntimeMetadataPrefixed> for Vec<u8> {
@@ -100,6 +104,10 @@ impl From<RuntimeMetadataPrefixed> for Vec<u8> {
 #[derive(Eq, Encode, PartialEq, Debug)]
 #[cfg_attr(feature = "decode", derive(Decode))]
 #[cfg_attr(feature = "serde_full", derive(Serialize))]
+#[cfg_attr(
+	all(feature = "serde_full", not(feature = "legacy")),
+	derive(Deserialize)
+)]
 pub enum RuntimeMetadata {
 	/// Unused; enum filler.
 	V0(RuntimeMetadataDeprecated),
